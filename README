@@ -1,0 +1,38 @@
+
+                          Ismole MooENV
+
+  What is it?
+  -----------
+
+  MooENV is a powerful and intelligent PHP web environment deploy solution.
+  MooENV could help you deploy L.A.M.P or L.N.M.P with NoSQL service support
+  environment on CentOS 5/6 Linux system. MooENV contain Apache, Nginx, PHP,
+  MySQL, Memcached, Tokyo-Tyrant/Tokyo-Cabinet and all dependent packages,
+  also, MooENV could optimize system performance and set up auto backup policy
+  for PHP web environment. With MooPHP, set up a L.A.M.P/L.N.M.P environment
+  in 10 minutes. Just enjoy it!
+
+  The Latest Version
+  ------------------
+
+  Details of the latest version can be found on the MooENV project page under 
+  <https://github.com/Ismole/MooENV>.
+
+  Installation
+  ------------
+
+  Please see the file called INSTALL.
+
+  Licensing
+  ---------
+
+  MooENV release under GNU GPL version 3 license.
+
+  Contacts
+  --------
+
+     o If you want to report bug, security issue or request new feature for MooENV, 
+       please send mail to <nanu@ismole.com>
+
+     o For other support for MooENV, please join us by visit
+       <https://github.com/Ismole/MooENV>.
