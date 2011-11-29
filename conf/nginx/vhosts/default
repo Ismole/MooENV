@@ -1,0 +1,25 @@
+server {
+    listen      80;
+    server_name _*;
+    access_log  /data/www/logs/default/access.log combined buffer=32k;
+    error_log   /data/www/logs/default/error.log crit;
+
+    location / {
+         index           index.html index.htm index.php;
+         root            /data/www/wwwroot/default;
+    }
+
+    location ~* ^.+.(jpg|jpeg|gif|css|png|js|ico|thumb) {
+        root    /data/www/wwwroot/default;
+        access_log off;
+        expires 10d;
+    }
+
+    location ~ \.php$ {
+         include fastcgi_params;
+         fastcgi_pass  unix:/tmp/php-fcgi.sock;
+         fastcgi_index index.php;
+         fastcgi_param SCRIPT_FILENAME /data/www/wwwroot/default$fastcgi_script_name;
+    }
+
+}

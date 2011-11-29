@@ -1,0 +1,30 @@
+# /* Bakcup Scripts {{{*/
+if [ $BACKUP -eq 0 ]; then
+    mkdir -p /backup/conf > /dev/null 2>&1
+    mkdir -p /backup/mysql > /dev/null 2>&1
+    mkdir -p /backup/www > /dev/null 2>&1
+    cp $SELF_PATH/scripts/backup_conf.sh /usr/local/sbin/
+    cp $SELF_PATH/scripts/backup_mysql.sh /usr/local/sbin/
+    cp $SELF_PATH/scripts/backup_www.sh /usr/local/sbin/
+    sed -i "s/MYPW=.*$/MYPW=\"${MYSQL_ROOT_PASS}\"/" /usr/local/sbin/backup_mysql.sh
+    echo -ne "\n\n\n"
+    Color_Msg cyan '=== Environment Backup Setting ==='
+    BK_SW=0
+    while [ $BK_SW -eq 0 ]; do
+        read -p "Do you want to add backup job to system cron? (Y/N)" BK
+        if [ $BK = 'y' ] || [ $BK = 'Y' ]; then
+            echo '0 4 * * * root /usr/local/sbin/backup_mysql.sh > /dev/null 2>&1' >> /var/spool/cron/root
+            echo '0 4 * * * root /usr/local/sbin/backup_www.sh > /dev/null 2>&1' >> /var/spool/cron/root
+            echo '0 4 * * * root /usr/local/sbin/backup_conf.sh > /dev/null 2>&1' >> /var/spool/cron/root
+            chmod 600 /var/spool/cron/root
+            BK_SW=1
+        elif [ $BK = 'n' ] || [ $BK = 'N' ]; then
+            BK_SW=1
+        else
+            Color_Msg red "\n\n\nInvaild answer, select angin. (Y/N)"
+            BK_SW=0
+        fi
+    done
+    sed -i "/BACKUP/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}

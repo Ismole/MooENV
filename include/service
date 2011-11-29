@@ -1,0 +1,37 @@
+echo -ne "\n"
+
+echo -ne "\n\n\n"
+Color_Msg cyan '=== System Services Configuration ==='
+SC_SW=0
+while [ $SC_SW -eq 0 ]; do
+    read -p "Do you want Web Server start at boot time? (Y/N)" SC
+    if [ $SC = 'y' ] || [ $SC = 'Y' ]; then
+        if [ $INST_TYPE = '1' ]; then
+            chkconfig --level 3 nginx on
+            chkconfig --level 3 php-fpm on
+        else
+            chkconfig --level 3 apache2 on
+        fi
+        SC_SW=1
+    elif [ $SC = 'n' ] || [ $SC = 'N' ]; then
+        SC_SW=1
+    else
+        Color_Msg red "\n\n\nInvaild answer, select angin. (Y/N)"
+        SC_SW=0
+    fi
+done
+
+unset SC_SW
+SC_SW=0
+while [ $SC_SW -eq 0 ]; do
+    read -p "Do you want MySQL Server start at boot time? (Y/N)" SC
+    if [ $SC = 'y' ] || [ $SC = 'Y' ]; then
+        chkconfig --level 3 mysqld on
+        SC_SW=1
+    elif [ $SC = 'n' ] || [ $SC = 'N' ]; then
+        SC_SW=1
+    else
+        Color_Msg red "\n\n\nInvaild answer, select angin. (Y/N)"
+        SC_SW=0
+    fi
+done

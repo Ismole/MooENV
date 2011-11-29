@@ -1,0 +1,58 @@
+"====ismole.com
+"colorscheme  darkblue
+set nocompatible
+set encoding=utf-8
+"set number
+filetype plugin indent on
+set history=100
+set autoread
+syntax on
+"set search
+set ignorecase
+set hlsearch
+set incsearch
+
+set magic
+set backspace=indent,eol,start
+set autoindent
+set smartindent
+set cinoptions=>4,n-2,{2,^-2,:2,=2,g0,h2,p5,t0,+2,(0,u0,w1,m1
+set shiftwidth=4
+set so=5
+set showmode
+set nobackup
+set ruler
+set showcmd
+set showmatch
+set matchtime=15
+autocmd FileType text setlocal textwidth=78
+"set list
+set cmdheight=3
+map Q gq
+inoremap <C-U> <C-G>u<C-U>
+"if has('mouse')
+"	set mouse=n
+"endif
+"alias
+"iabbrev #a ## Author : adam.li@ismole.com
+iab xtime ## <C-R>=strftime("%Y-%m-%d %T")<CR>
+"set foldcolumn=4
+set foldmethod=marker
+set comments=:#
+if has("gui_running")
+	colorscheme darkblue
+	set background=dark
+else
+    set background=dark
+endif
+"no err sound
+set noerrorbells
+set novisualbell
+set t_vb=
+"status
+set laststatus=2
+set statusline=\ %F%m%r%h\ %w\ \ CWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L:%c
+function! CurDir()
+     let curdir = substitute(getcwd(),"/", "~/", "g")
+     return curdir
+endfunction

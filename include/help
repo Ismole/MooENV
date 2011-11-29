@@ -1,0 +1,17 @@
+MooENV Help Documnet
+====================
+
+MooENV - The Linux PHP WEB Environment Deploy System
+Copyright (C) 2011 Ismole Inc.
+
+-h --help          Print help information.
+
+-r --reinstall     Backup web documnet root and MySQL
+                   databases before Reinstall MooENV.
+
+-c --check-update  Check MooENV latest version.
+
+-v --version       Show MooENV version.
+
+For more information please visite:
+https://github.com/Ismole/MooENV

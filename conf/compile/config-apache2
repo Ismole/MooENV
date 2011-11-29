@@ -1,0 +1,18 @@
+./configure
+    --prefix=/usr/local/apache2
+    --with-included-apr
+    --enable-so
+    --enable-deflate
+    --enable-expires
+    --enable-rewrite
+    --enable-cache
+    --enable-file-cache
+    --enable-mem-cache
+    --enable-disk-cache
+    --enable-info
+    --enable-headers
+    --enable-proxy
+    --enable-proxy-connect
+    --enable-proxy-http
+    --enable-proxy-balancer
+    --disable-userdir

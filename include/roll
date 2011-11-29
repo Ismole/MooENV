@@ -1,0 +1,11 @@
+#!/bin/bash
+i=1
+while [ $i -gt 0 ]
+do
+    for j in '-' '\\' '|' '/'
+    do
+        echo -ne "\033[1D$j"
+        usleep 40000
+    done
+    ((i++))
+done

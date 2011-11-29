@@ -1,0 +1,24 @@
+
+  MooENV INSTALLATION OVERVIEW
+
+  Quick Start
+  -----------
+
+     $ ./install.sh
+
+     NOTES: * use -h or --help argument to read detailed installation
+              options.
+
+            * If you want to reinstall MooENV, use ./install.sh reinstall
+
+            * MooENV support CentOS 5.x or 6.x Linux only.
+
+            * To install MooENV, you must be root.
+
+  Post-Install
+  ------------
+
+  After installed MooENV, please read /root/.MooEVN/report.txt to get the
+  environment's key path, file and configuration.
+
+  Thanks for using the MooENV.

@@ -1,0 +1,72 @@
+# Welcome
+Color_Msg cyan '=================================='
+Color_Msg cyan '| Welcome to MooENV Installation |'
+Color_Msg cyan '=================================='
+echo -ne "\n"
+Color_Msg def 'MooENV - The Linux PHP WEB Environment Deploy System'
+Color_Msg def 'Copyright (C) 2011 Ismole Inc.'
+echo -ne "\n"
+Color_Msg def 'This program is free software: you can redistribute it and/or modify'
+Color_Msg def 'it under the terms of the GNU General Public License as published by'
+Color_Msg def 'the Free Software Foundation, either version 3 of the License, or'
+Color_Msg def 'any later version.'
+echo -ne "\n"
+Color_Msg def 'This program is distributed in the hope that it will be useful,'
+Color_Msg def 'but WITHOUT ANY WARRANTY; without even the implied warranty of'
+Color_Msg def 'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the'
+Color_Msg def 'GNU General Public License for more details.'
+echo -ne "\n"
+Color_Msg def 'You should have received a copy of the GNU General Public License'
+Color_Msg def 'along with this program.  If not, see <http://www.gnu.org/licenses/>.'
+echo -ne "\n"
+Color_Msg cyan 'Enter for reading GNU General Public License'
+read
+more ./GNU-GPL-V3.txt
+echo -ne "\n\n"
+read -p "Do You Agree To The Terms Of This License? (Y/N)" EULA
+if [ $EULA != 'y' ] && [ $EULA != 'Y' ]; then
+    Color_Msg red 'You did not agree to the license. Installation Aborted!'
+    exit 1
+fi
+
+echo -ne "\n\n"
+
+# /* Reinstall {{{*/
+if [ "$1" = '-r' ] || [ "$1" = '--reinstall' ]; then
+    sed -i '/=/s/1/0/' $SELF_PATH/id.conf
+    source $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Installation Type. {{{*/
+if [ "$INSTALL_TYPE" -eq 0 ]; then
+    echo -ne "\n"
+    INST_SW=0
+    while [ $INST_SW -eq 0 ]; do
+        Color_Msg cyan '=== Which Integrate Environment You Want? ==='
+        Color_Msg def '1: L.N.M.P - Nginx/PHP-FastCGI/MySQL/NoSQL'
+        Color_Msg def '2: L.A.M.P - Apache/PHP/MySQL/NoSQL'
+        read -p "Select Integration type (1 or 2):" INST_TYPE
+        if [ -z $INST_TYPE ]; then
+            INST_TYPE=1
+            INST_SW=1
+        elif [ $INST_TYPE != '1' ] && [ $INST_TYPE != '2' ]; then
+            Color_Msg red "\n\n\nInvaild option, select angin. (1 or 2)"
+            INST_SW=0
+        else
+            INST_SW=1
+        fi
+    done
+    echo "$INST_TYPE" > $SELF_PATH/conf/INST_TYPE
+    sed -i "/INSTALL_TYPE/s/0/1/g" $SELF_PATH/id.conf
+else
+    INST_TYPE=`cat ${SELF_PATH}/conf/INST_TYPE`
+fi
+# */}}}
+
+# /* Get mooenv.res {{{*/
+if [ -f ${STORE_DIR}/mooenv.res ]; then
+    rm -f ${STORE_DIR}/mooenv.res
+fi
+wget -c -t0 -nH ${DOWNLOAD_SITE}/mooenv.res -O ${STORE_DIR}/mooenv.res || Install_Failed ' getting mooenv.res'
+# */}}}

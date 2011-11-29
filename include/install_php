@@ -1,0 +1,185 @@
+# /* Install zlib {{{*/
+if [ "$ZLIB" -eq 0 ]; then
+    Color_Msg cyan "Install zlib ..."
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${ZLIB_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-zlib`
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    eval $COMPO_CONFIG || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    sed -i "/ZLIB/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install c-ares for curl {{{*/
+if [ "$CARES" -eq 0 ]; then
+    Color_Msg cyan "Install c-ares ..."
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${C_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-c-ares`
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    eval $COMPO_CONFIG || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    sed -i "/CARES/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install curl {{{*/
+if [ "$CURL" -eq 0 ]; then
+    Color_Msg cyan "Install curl ..."
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${CURL_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-curl`
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    eval $COMPO_CONFIG || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    sed -i "/CURL/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install PCRE {{{*/
+if [ "$PCRE" -eq 0 ]; then
+    Color_Msg cyan "Install PCRE ..."
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${PCRE_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-pcre`
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    eval $COMPO_CONFIG || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    sed -i "/PCRE/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install PHP {{{*/
+if [ "$PHP" -eq 0 ]; then
+    Color_Msg cyan "Install PHP ..."
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${PHP_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    # /* PHP-FastCGI or PHP SO {{{*/
+    if [ $INST_TYPE = '1' ]; then
+        COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-php-nginx`
+    else
+        COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-php-apache2`
+    fi
+    # */}}}
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    eval $COMPO_CONFIG || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    cd $SELF_PATH
+    Color_Msg cyan "Configure PHP Environmnet ..."
+    strip /usr/local/php/bin/* > /dev/null 2>&1
+    strip /usr/local/php/sbin/* > /dev/null 2>&1
+    cp conf/php/php.ini /usr/local/php/etc/
+    # /* Configure PHP-FastCGI {{{*/
+    if [ $INST_TYPE = '1' ]; then
+        rm -f /usr/local/php/etc/php-fpm.conf
+        cp conf/php/php-fpm.conf /usr/local/php/etc/
+        cp conf/php/php-fpm /etc/rc.d/init.d/
+        chkconfig --add php-fpm && chkconfig --level 3 php-fpm off
+    fi
+    # */}}}
+    mkdir /usr/local/php/ext
+    sed -i "/PHP/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install PHP cache optimizer {{{*/
+if [ "$PHP_CACHE" -eq 0 ]; then
+    Color_Msg cyan "Install PHP Cache Optimizer ..."
+    echo -ne "\n"
+    # /* Select optimizer {{{*/
+    INST_SW=0
+    while [ $INST_SW -eq 0 ]; do
+        Color_Msg cyan '=== Which PHP Cache Optimizer would you like to use? ==='
+        Color_Msg def '1: APC - Alternative PHP Cache'
+        Color_Msg def '2: EA  - eAccelerator'
+        read -p "Select PHP Cache Optimizer (1 or 2):" PHPCACHE_TYPE
+        if [ -z $PHPCACHE_TYPE ]; then
+            PHPCACHE_TYPE=1
+            INST_SW=1
+        elif [ $PHPCACHE_TYPE != '1' ] && [ $PHPCACHE_TYPE != '2' ]; then
+            Color_Msg red "\n\n\nInvaild option, select angin. (1 or 2)"
+            INST_SW=0
+        else
+            INST_SW=1
+        fi
+    done
+    # */}}}
+    if [ $PHPCACHE_TYPE = '1' ]; then
+        cd ${STORE_DIR}
+        unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+        parser_file ${APC_SRC}
+        rm -rf  "${SRC_DIR}"
+        get_file
+        unpack
+        cd $SRC_DIR
+        Color_Msg green "Configure $SRC ..."
+        /usr/local/php/bin/phpize || Install_Failed "$SRC"
+        ./configure '--with-php-config=/usr/local/php/bin/php-config' || Install_Failed "$SRC"
+        Color_Msg green "Making $SRC ..."
+        make || Install_Failed "$SRC"
+        Color_Msg green "Installing $SRC ..."
+        cp modules/apc.so /usr/local/php/ext/ || Install_Failed "$SRC"
+        cd $SELF_PATH
+        echo -ne `cat conf/php/apc.conf` >> /usr/local/php/etc/php.ini
+    else
+        cd ${STORE_DIR}
+        unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+        parser_file ${EACCELERATOR_SRC}
+        rm -rf  "${SRC_DIR}"
+        get_file
+        unpack
+        cd $SRC_DIR
+        Color_Msg green "Configure $SRC ..."
+        /usr/local/php/bin/phpize || Install_Failed "$SRC"
+        ./configure '--enable-eaccelerator' '--with-php-config=/usr/local/php/bin/php-config' || Install_Failed "$SRC"
+        Color_Msg green "Making $SRC ..."
+        make || Install_Failed "$SRC"
+        Color_Msg green "Installing $SRC ..."
+        cp modules/eaccelerator.so /usr/local/php/ext/ || Install_Failed "$SRC"
+        cd $SELF_PATH
+        echo -ne `cat conf/php/ea.conf` >> /usr/local/php/etc/php.ini
+    fi
+    sed -i "/PHP_CACHE/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}

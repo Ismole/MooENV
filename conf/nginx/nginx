@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# Nginx Control Script for Red Hat based Linux.
+# Version: 1.0
+# Written by Nanu
+# chkconfig: 35 90 90
+# description: Nginx Web Server
+
+# Source Function Library
+. /etc/init.d/functions
+
+# Nginx Settings
+NGINX_SBIN="/usr/local/nginx/sbin/nginx"
+NGINX_CONF="/usr/local/nginx/conf/nginx.conf"
+NGINX_PID="/usr/local/nginx/var/nginx.pid"
+
+RETVAL=0
+prog="Nginx"
+        
+start() {
+        echo -n $"Starting $prog: "
+	ulimit -SHn 4096
+        daemon $NGINX_SBIN -c $NGINX_CONF
+        RETVAL=$?
+        echo
+        return $RETVAL
+}       
+        
+stop() {
+        echo -n $"Stopping $prog: "
+        killproc -p $NGINX_PID $NGINX_SBIN -TERM
+        RETVAL=$?
+        echo
+        return $RETVAL
+}       
+        
+reload(){
+        echo -n $"Reloading $prog: "
+        killproc -p $NGINX_PID $NGINX_SBIN -HUP
+        RETVAL=$?
+        echo
+        return $RETVAL
+}
+
+restart(){
+        stop
+        start
+}
+
+configtest(){
+    $NGINX_SBIN -c $NGINX_CONF -t
+    return 0
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  reload)
+        reload
+        ;;
+  restart)
+        restart
+        ;;
+  configtest)
+        configtest
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|reload|restart|configtest}"
+        RETVAL=1
+esac
+
+exit $RETVAL

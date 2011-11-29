@@ -1,0 +1,157 @@
+# /* Install/Upgrade Libevent {{{*/
+if [ "$LIBEVENT" -eq 0 ]; then
+    Color_Msg cyan 'Install Libevent ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${LIBEVENT_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    ./configure '--prefix=/usr/local/libevent' || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    sed -i "/LIBEVENT/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install Memcached {{{*/
+if [ "$MEMCACHED" -eq 0 ]; then
+    Color_Msg cyan 'Install Memcached ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${MEMCACHED_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    if [ $PLATFORM = 'x86_64' ]; then
+        ./configure '--prefix=/usr/local/memcached' \
+          '--enable-64bit' \
+          '--with-libevent=/usr/local/libevent' || Install_Failed "$SRC"
+    else
+        ./configure '--prefix=/usr/local/memcached' \
+          '--with-libevent=/usr/local/libevent' || Install_Failed "$SRC"
+    fi
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    export PATH="$PATH:/usr/local/memcached/bin"
+    sed -i "/MEMCACHED/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install Libmemcached {{{*/
+if [ "$LIBMEMCACHED" -eq 0 ]; then
+    Color_Msg cyan 'Install Libmemcached ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${LIBMEMCACHED_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    ./configure '--prefix=/usr/local/libmemcached' \
+      '--with-libevent-prefix=/usr/local/libevent' \
+      '--with-memcached' || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    sed -i "/LIBMEMCACHED/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install memcache PECL extension for PHP {{{*/
+if [ "$MEMCACHE" -eq 0 ]; then
+    Color_Msg cyan 'Install PHP PECL extension: memcached ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${MEMCACHE_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    /usr/local/php/bin/phpize || Install_Failed "$SRC"
+    ./configure '--with-php-config=/usr/local/php/bin/php-config' \
+      '--with-libmemcached-dir=/usr/local/libmemcached' \
+      '--enable-memcached' || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    cp modules/memcache.so /usr/local/php/ext/ || Install_Failed "$SRC"
+    sed -i "/MEMCACHE/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install Tokyo-Cabinet {{{*/
+if [ "$TC" -eq 0 ]; then
+    Color_Msg cyan 'Install Tokyo-Cabinet ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${TOKYOCABINET_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    cd ${SRC_DIR}
+    Color_Msg green 'Configure $SRC ...'
+    ./configure --prefix=/usr/local/tokyocabinet || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    sed -i "/TC/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install Tokyo-Tyrant {{{*/
+if [ "$TT" -eq 0 ]; then
+    Color_Msg cyan 'Install Tokyo-Tyrant ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${TOKYOTYRANT_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    cd ${SRC_DIR}
+    Color_Msg green "Configure $SRC ..."
+    ./configure --prefix=/usr/local/ttserver --with-tc=/usr/local/tokyocabinet || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    sed -i "/TT/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install Tokyo-Tyrant PECL extension for PHP {{{*/
+if [ "$PECL_TT" -eq 0 ]; then
+    Color_Msg cyan 'Install Tokyo-Tyrant PECL Extension ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${TOKYO_TYRANT_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    cd ${SRC_DIR}
+    Color_Msg green "Configure $SRC ..."
+    /usr/local/php/bin/phpize || Install_Failed "$SRC"
+    ./configure --with-tokyo-tyrant=/usr/local/ttserver \
+        --with-tokyo-cabinet-dir=/usr/local/tokyocabinet \
+        --with-php-config=/usr/local/php/bin/php-config || \
+        Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    cp modules/tokyo_tyrant.so /usr/local/php/ext || Install_Failed "$SRC"
+    cd ${STORE_DIR}
+    sed -i "/PECL_TT/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}

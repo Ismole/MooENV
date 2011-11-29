@@ -1,0 +1,96 @@
+#!/bin/bash
+#
+# SysV startup script for the Apache2.0.X Web Server
+# Fixed by Nanu (nanu@inanu.net)
+#
+# chkconfig: - 85 15
+# description: Apache is a World Wide Web server.  It is used to serve \
+#              HTML files and CGI.
+# processname: httpd
+# pidfile: /var/run/httpd.pid
+# config: /usr/local/apache2/conf/httpd.conf
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+if [ -f /etc/sysconfig/httpd ]; then
+        . /etc/sysconfig/httpd
+fi
+
+# This will prevent initlog from swallowing up a pass-phrase prompt if
+# mod_ssl needs a pass-phrase from the user.
+INITLOG_ARGS=""
+
+# Set HTTPD=/usr/sbin/httpd.worker in /etc/sysconfig/httpd to use a server
+# with the thread-based "worker" MPM; BE WARNED that some modules may not
+# work correctly with a thread-based MPM; notably PHP will refuse to start.
+
+# Path to the apachectl script, server binary, and short-form for messages.
+apachectl=/usr/local/apache2/bin/apachectl
+httpd=${HTTPD-/usr/local/apache2/bin/httpd}
+prog=httpd
+RETVAL=0
+
+# The semantics of these two functions differ from the way apachectl does
+# things -- attempting to start while running is a failure, and shutdown
+# when not running is also a failure.  So we just do it the way init scripts
+# are expected to behave here.
+start() {
+        echo -n $"Starting $prog: "
+        daemon $httpd $OPTIONS
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ] && touch /var/lock/subsys/httpd
+        return $RETVAL
+}
+stop() {
+        echo -n $"Stopping $prog: "
+        killproc $httpd
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ] && rm -f /var/lock/subsys/httpd /var/run/httpd.pid
+}
+reload() {
+        echo -n $"Reloading $prog: "
+        killproc $httpd -HUP
+        RETVAL=$?
+        echo
+}
+
+# See how we were called.
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        status $httpd
+        RETVAL=$?
+        ;;
+  restart)
+        stop
+        start
+        ;;
+  condrestart)
+        if [ -f /var/run/httpd.pid ] ; then
+                stop
+                start
+        fi
+        ;;
+  reload)
+        reload
+        ;;
+  graceful|help|configtest|fullstatus)
+        $apachectl $@
+        RETVAL=$?
+        ;;
+  *)
+        echo $"Usage: $prog
+
+{start|stop|restart|condrestart|reload|status|fullstatus|graceful|help|configtest}"
+        exit 1
+esac
+
+exit $RETVAL

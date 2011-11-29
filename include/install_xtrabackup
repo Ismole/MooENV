@@ -1,0 +1,18 @@
+if [ $XTRABACKUP -eq 0 ]; then
+    if [ $PLATFORM = 'x86_64' ]; then
+        XTRABACKUP_SRC=$XTRABACKUP64_SRC
+    else
+        XTRABACKUP_SRC=$XTRABACKUP32_SRC
+    fi
+    Color_Msg cyan "Install Xtrabackup for MySQL ..."
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM
+    parser_file ${XTRABACKUP_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    SRC_DIR='xtrabackup-*'
+    mv ${SRC_DIR} /usr/local/`echo $SRC_DIR | cut -d\- -f1`
+    ln -s /usr/local/xtrabackup/bin/* /usr/local/bin
+    sed -i "/XTRABACKUP/s/0/1/g" $SELF_PATH/id.conf 
+fi

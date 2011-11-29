@@ -1,0 +1,57 @@
+if [ "$MYSQL" -eq 0 ]; then
+    Color_Msg cyan 'Install MySQL Server ...'
+    useradd -M mysql -s /sbin/nologin
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${MYSQL_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack || Install_Failed "$SRC"
+    Color_Msg cyan 'Installing ...'
+    chown mysql.root -R ${SRC_DIR}
+    mv ${SRC_DIR} /usr/local/
+    ln -sf /usr/local/${SRC_DIR} /usr/local/mysql
+    strip /usr/local/mysql/bin/* > /dev/null 2>&1
+    cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysqld
+    chmod +x /etc/rc.d/init.d/mysqld
+    chkconfig --add mysqld && chkconfig --level 3 mysqld on
+    mkdir -p /var/lib/mysql > /dev/null 2>&1
+    chown mysql.mysql -R /var/lib/mysql
+    ln -sf /usr/local/mysql/bin/* /usr/local/bin/
+    if [ -f /etc/my.cnf ]; then
+        mv -f /etc/my.cnf /etc/my.cnf.bak.$EXEC_DATE
+    fi
+    cp $SELF_PATH/conf/mysql/my.cnf /etc/my.cnf
+    CPU_NUM=`cat /proc/cpuinfo |grep processor|wc -l`
+    CPU_NUM=`expr $CPU_NUM \* 2`
+    sed -i "s/thread_concurrency.*$/thread_concurrency =  $CPU_NUM/" /etc/my.cnf
+    MEM_TOTAL=`free -m | grep 'Mem' | awk '{print $2}'`
+    MEM_TOTAL=`expr $MEM_TOTAL \* 60`
+    MEM_MIBPS=`expr $MEM_TOTAL / 100`
+    sed -i "s/innodb_buffer_pool_size.*$/innodb_buffer_pool_size = ${MEM_MIBPS}M/" /etc/my.cnf
+    cd /usr/local/mysql
+    scripts/mysql_install_db --skip-name-resolve --user=mysql
+    Color_Msg cyan 'Try to start MySQL server ...'
+    /etc/init.d/mysqld start || Install_Failed "$SRC"
+    echo -ne "\n\n"
+    MYSQL_SW=0
+    while [ $MYSQL_SW -eq 0 ]; do
+        Color_Msg cyan ' === Set MySQL root password ==='
+        read -s -p '*** Input  password:' MYSQL_ROOT_PASS
+        echo -ne "\n"
+        read -s -p '*** Verify password:' MYSQL_ROOT_PASS2
+        echo -ne "\n"
+        if [ -z $MYSQL_ROOT_PASS ]; then
+            Color_Msg red 'MySQL password can not be empty!'
+            MYSQL_SW=0
+        elif [ $MYSQL_ROOT_PASS != $MYSQL_ROOT_PASS2 ]; then
+            Color_Msg red 'The passwords you typed did not match!'
+            MYSQL_SW=0
+        else
+            /usr/local/mysql/bin/mysqladmin -uroot password $MYSQL_ROOT_PASS
+            Color_Msg green 'MySQL root password has been set!'
+            MYSQL_SW=1
+        fi
+    done
+    sed -i "/MYSQL/s/0/1/g" $SELF_PATH/id.conf
+fi

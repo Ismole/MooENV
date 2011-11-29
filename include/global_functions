@@ -1,0 +1,103 @@
+Install_Failed(){
+# Usage: Install_Failed 'ERROR_MESSAGE'
+# /*Body of Color_Msg function {{{*/
+echo -e "\033[40;31m"
+echo "Install $1 Failed!"
+echo -e "\033[40;37m"
+exit 1
+# /*}}}*/
+}
+
+Color_Msg(){
+# Usage: Color_Msg 'COLOR_NAME' 'MESSAGE'
+# /*Body of Color_Msg function {{{*/
+local COLOR=$1
+local MSG=$2
+case $COLOR in
+    black)
+    COLOR="\033[1;40;30m"
+    ;;
+    red)
+    COLOR="\033[1;40;31m"
+    ;;
+    green)
+    COLOR="\033[1;40;32m"
+    ;;
+    yellow)
+    COLOR="\033[1;40;33m"
+    ;;
+    blue)
+    COLOR="\033[1;40;34m"
+    ;;
+    cyan)
+    COLOR="\033[1;40;36m"
+    ;;
+    *)
+    COLOR="\033[1;40;37m"
+    ;;
+esac
+echo -e $COLOR $MSG
+echo -ne "\033[0m"
+# /*}}}*/
+}
+
+parser_file(){
+# Usage:parser_file FILENAME
+# /*Body of parser_file function {{{*/
+SRC=$(echo $1|cut -d\| -f1)
+SUM=$(echo $1|cut -d\| -f2)
+FILE_EXT=$(echo $SRC|awk -F. '{print $NF}')
+if [ $FILE_EXT = 'gz' ] || [ $FILE_EXT = 'bz2' ]; then
+    SRC_DIR=$(basename $SRC ".tar.$FILE_EXT")
+elif [ $FILE_EXT = 'tar' ] || [ $FILE_EXT = 'tgz' ]; then
+    SRC_DIR=$(basename $SRC ".$FILE_EXT")
+else
+    Color_Msg red "Unkown file format $SRC"
+fi
+# /*}}}*/
+}
+
+get_file(){
+# Usage: get_file 'REMOTE_FILE_URL' 'FILE_MD5SUM'
+# /*Body of get_file function {{{*/
+if [ -f "${STORE_DIR}/$SRC" ]; then
+    if [ $CHECK_MD5 = '1' ]; then
+        SUM1=$(md5sum "${STORE_DIR}/$SRC" 2>/dev/null | awk '{print $1}')
+        if [ "$SUM1" = "$SUM"  ];then
+            Color_Msg green "$SRC source file exist and checksum OK"
+        else
+            Color_Msg red "$SRC exists but MD5 checksum failed,\nDownloading $SRC ...\"$SRC\""
+            rm -f ${STORE_DIR}/$SRC 2>/dev/null
+            wget -c -t0 -nH ${DOWNLOAD_SITE}/$SRC -O ${STORE_DIR}/$SRC && return 0 || return 1
+        fi
+    fi
+else
+    Color_Msg red "$SRC does not exists, downloading ..."
+    wget -c -t0 -nH ${DOWNLOAD_SITE}/$SRC -O ${STORE_DIR}/$SRC && return 0 || return 1
+fi
+# }}}*/
+}
+
+unpack(){
+# Usage: unpack 'COMPRESS_FILE'
+# /*Body of unpack function {{{*/
+Color_Msg green "Unpacking source file: $SRC ..."
+case $FILE_EXT in
+    tar)
+        tar xf $SRC
+        ;;
+    gz)
+        tar zxf $SRC
+        ;;
+    tgz)
+        tar zxf $SRC
+        ;;
+    bz2)
+        tar jxf $SRC
+        ;;
+    *)
+        Color_Msg red "$SRC: Unknown File Format!"
+    ;;
+esac
+# /*}}}*/
+}

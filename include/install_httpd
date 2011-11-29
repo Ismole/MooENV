@@ -1,0 +1,88 @@
+if [ "$WEB" -eq 0 ];then
+    Color_Msg cyan 'Install Web Server ...'
+    useradd www -M -s /sbin/nologin
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    # /* Nginx or Apache2 {{{*/
+    if [ $INST_TYPE = '2' ]; then
+        WEB_SRC=${HTTPD_SRC}
+        COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-apache2`
+    else
+        WEB_SRC=${NGINX_SRC}
+        COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-nginx`
+        # /* Prepare dependent packages {{{*/
+        for DEP_LIB in $ZLIB_SRC $OPENSSL_SRC $PCRE_SRC
+        do
+            cd ${STORE_DIR}
+            unset SRC SRC_DIR FILE_EXT SUM
+            parser_file "${DEP_LIB}"
+            get_file
+            unpack || Install_Failed "$SRC"
+            mv $SRC_DIR `echo $SRC_DIR | cut -d\- -f1`
+        done
+        # */}}}
+    fi
+    # */}}}
+    unset SRC SRC_DIR FILE_EXT SUM
+    parser_file ${WEB_SRC}
+    get_file
+    rm -rf $SRC_DIR
+    unpack
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    eval $COMPO_CONFIG || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    # /* Configure web server {{{*/
+    cd $SELF_PATH
+    if [ $INST_TYPE = '1' ]; then
+        strip /usr/local/nginx/sbin/nginx > /dev/null 2>&1
+        Color_Msg cyan "Configuring Nginx ..."
+        cp -r conf/nginx/vhosts /usr/local/nginx/conf/
+        rm -f /usr/local/nginx/conf/nginx.conf
+        cp conf/nginx/nginx.conf /usr/local/nginx/conf/
+        cp conf/nginx/nginx.vim /usr/share/vim/vim70/syntax/
+        echo 'au BufRead,BufNewFile /usr/local/nginx/conf/* set ft=nginx' >> /usr/share/vim/vim70/filetype.vim
+        mkdir /usr/local/nginx/bin
+        cp conf/nginx/nginx_cronolog /usr/local/nginx/bin/
+        echo '0 0 * * * root /usr/local/nginx/bin/nginx_cronolog > /dev/null 2>&1' >> /var/spool/cron/root
+        chmod 600 /var/spool/cron/root
+        cp conf/nginx/nginx /etc/rc.d/init.d/
+        chmod +x /etc/rc.d/init.d/nginx
+        chkconfig --add nginx && chkconfig --level 3 nginx off
+    else
+        strip /usr/local/apache2/bin/* > /dev/null 2>&1
+        Color_Msg cyan "Configuring Apache2 ..."
+        cp -rf /usr/local/apache2/conf /usr/local/apache2/conf.bak.$EXEC_DATE
+        cp -rf $SELF_PATH/conf/apache2/conf /usr/local/apache2/
+        cp -f $SELF_PATH/conf/apache2/apache2 /etc/init.d/apache2
+        chmod +x /etc/rc.d/init.d/apache2
+        chkconfig --add apache2 && chkconfig --level 3 apache2 on
+        Color_Msg cyan "Install Cronolog for Apache2 ..."
+        # /* Install cronolog for Apache2 {{{*/
+        cd ${STORE_DIR}
+        unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+        parser_file ${CRONOLOG_SRC}
+        rm -rf "${SRC_DIR}"
+        get_file
+        unpack
+        cd ${SRC_DIR}
+        Color_Msg green "Configure $SRC ..."
+        ./configure --prefix=/usr/local/cronolog || Install_Failed "$SRC"
+        Color_Msg green "Making $SRC ..."
+        make || Install_Failed "$SRC"
+        Color_Msg green "Installing $SRC ..."
+        make install || Install_Failed "$SRC"
+    fi
+    # */}}}
+    Color_Msg cyan 'Create web server document root and log directories ...'
+    mkdir -p /data/www/wwwroot/default
+    mkdir -p /data/www/logs/default
+    echo '<?php' > /data/www/wwwroot/default/index.php
+    echo 'phpinfo();' >> /data/www/wwwroot/default/index.php
+    echo '?>' >> /data/www/wwwroot/default/index.php
+    chown -R www.www /data/www/
+    sed -i "/WEB/s/0/1/g" $SELF_PATH/id.conf
+fi

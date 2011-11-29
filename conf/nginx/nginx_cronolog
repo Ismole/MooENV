@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Nginx access log rotate
+
+LOG_DIR=/data/www/logs
+LOG_NAME=access.log
+NGX_PID=/usr/local/nginx/var/nginx.pid
+
+LDATE=`/bin/date --date '1 day ago' "+%Y%m%d"`
+/bin/kill -HUP `/bin/cat $NGX_PID`
+
+for SITE in `/bin/ls $LOG_DIR`
+do
+    /bin/mv ${LOG_DIR}/${SITE}/${LOG_NAME} ${LOG_DIR}/${SITE}/${LOG_NAME}.0
+    /bin/kill -USR1 `/bin/cat $NGX_PID`
+    /bin/mv ${LOG_DIR}/${SITE}/${LOG_NAME}.0 ${LOG_DIR}/${SITE}/${LOG_NAME}-${LDATE}
+done

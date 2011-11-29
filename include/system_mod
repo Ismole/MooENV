@@ -1,0 +1,133 @@
+# /* Modify /etc/sysctl.conf {{{*/
+if [ "$SYSCTL" -eq 0 ]; then
+    mv /etc/sysctl.conf /etc/sysctl.conf.$EXEC_DATE
+    cp $SELF_PATH/conf/etc/sysctl.conf /etc/
+    /sbin/sysctl -p
+    sed -i "/SYSCTL/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Upgrade System {{{*/
+if [ "$CHYUM" -eq 0 ]; then
+    Color_Msg cyan "= YUM UPDATE ="
+    read -p "Do you want to change default YUM mirror to others? (y/n)" YM
+    if [ $YM = "y" ] || [ $YM = "Y" ]; then
+        cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.ori
+        Color_Msg cyan " SELECT YUM MIRROR"
+        Color_Msg green "1. 163 - http://mirrors.163.com"
+        Color_Msg green "2. Sohu - http://mirrors.sohu.com"
+        Color_Msg green "3. Custom - Manually input URL"
+        read -p "Which YUM Mirror Do You Want To Use? (1/2/3):" YMD
+        if [ $YMD = "1" ]; then
+            sed -i 's/mirrorlist=/#mirrorlist=/g' /etc/yum.repos.d/CentOS-Base.repo
+            sed -i 's/#baseurl=/baseurl=/g' /etc/yum.repos.d/CentOS-Base.repo
+            sed -i '/baseurl=/s/mirror.centos.org/mirrors.163.com/g' /etc/yum.repos.d/CentOS-Base.repo
+            Color_Msg green "Default YUM mirror has been changed to 163!"
+            sed -i "/CHYUM/s/0/1/g" $SELF_PATH/id.conf
+        elif [ $YMD = "2" ]; then
+            sed -i 's/mirrorlist=/#mirrorlist=/g' /etc/yum.repos.d/CentOS-Base.repo
+            sed -i 's/#baseurl=/baseurl=/g' /etc/yum.repos.d/CentOS-Base.repo
+            sed -i '/baseurl=/s/mirror.centos.org/mirrors.sohu.com/g' /etc/yum.repos.d/CentOS-Base.repo
+            Color_Msg green "Default YUM mirror has been changed to Sohu!"
+            sed -i "/CHYUM/s/0/1/g" $SELF_PATH/id.conf
+        elif [ $YMD = "3" ]; then
+            read -p "Enter your YUM mirror site URL:" YMURL
+            sed -i 's/mirrorlist=/#mirrorlist=/g' /etc/yum.repos.d/CentOS-Base.repo
+            sed -i 's/#baseurl=/baseurl=/g' /etc/yum.repos.d/CentOS-Base.repo
+            sed -i "/baseurl=/s/mirror.centos.org/$YMURL/g" /etc/yum.repos.d/CentOS-Base.repo
+            sed -i "/CHYUM/s/0/1/g" $SELF_PATH/id.conf
+        else
+            Color_Msg red "Invaild select. Keep default YUM mirror!"
+        fi
+    else
+        Color_Msg red "Keep default YUM mirror."
+    fi
+fi
+
+Color_Msg yellow "PLEASE CONFIRM SERVER HAS BEEN CONNECTED TO INTERNET!"
+read -p "Do you want to perform a YUM update now? (y/n)" YUPDATE
+if [ $YUPDATE = "y" ] || [ $YUPDATE = "Y" ]; then
+    yum -y update
+else
+    Color_Msg red "YUM Update Was Cancled By End User!"
+fi
+# */}}}
+
+# /* Interactive Booting Screen {{{*/
+if [ "$GRUB" -eq 0 ] && [ $OS = "6" ];then
+    cp /boot/grub/grub.conf /boot/grub/grub.conf.ori
+    sed -i 's/rhgb//g' /boot/grub/grub.conf
+    sed -i 's/quiet//g' /boot/grub/grub.conf
+    sed -i "/GRUB/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Optimize Applications and Environment Check {{{*/
+if [ "${SYSTEM_MOD}" -eq 0 ];then
+    Color_Msg cyan "= Init System Environment Check and Setup ="
+    grep vim /root/.bashrc ||  echo "alias vi='vim'" >> /root/.bashrc
+    grep HISTTIMEFORMAT /etc/profile >/dev/null && sed -i 's/HISTTIMEFORMAT.*/HISTTIMEFORMAT="%Y-%m-%d %H:%M:%S "/g' \
+         /etc/profile || echo 'HISTTIMEFORMAT="%Y-%m-%d %H:%M:%S "' >> /etc/profile
+    grep HISTSIZE /etc/profile >/dev/null && sed -i 's/HISTSIZE.*/HISTSIZE=10240/g' /etc/profile || echo \
+         'HISTSIZE=10240' >>/etc/profile
+    source /etc/profile
+    cp $SELF_PATH/conf/etc/limits.conf  /etc/security/limits.conf
+    sed -i 's/XAUTHORITY/& PATH/' /etc/sudoers
+    sed -i '/id:5/s/5/3/' /etc/inittab
+    setenforce 0
+    sed -i '/SELINUX=enforc/s/enforcing/disabled/' /etc/selinux/config
+    sed -i 's/#UseDNS.*$/UseDNS no/g' /etc/ssh/sshd_config
+    sed -i '/IPV6INIT/s/yes/no/' /etc/sysconfig/network-scripts/ifcfg-*
+    sed -i '/IPV6_AUTOCONF/s/yes/no/' /etc/sysconfig/network-scripts/ifcfg-*
+    sed -i 's/NETWORKING_IPV6.*$/NETWORKING_IPV6=no/' /etc/sysconfig/network
+    grep "multilib_policy" /etc/yum.conf >/dev/null && sed -i 's/multilib_policy.*/multilib_policy=best/' \
+         /etc/yum.conf || sed -i '/\[main\]/a\multilib_policy=best' /etc/yum.conf
+    iptables -F && service iptables save
+    sed -i '/SYSTEM_MOD/s/0/1/g' $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Install Development Tools and Lib {{{*/
+if [ "$DEP_PKG" -eq 0 ]; then
+    Color_Msg cyan "Install Development Tools and Libs ..."
+    yum -y install @development-tools
+
+    yum -y install libxml2-devel gd-devel openssl-devel ncurses-devel libjpeg-devel \
+                   freetype-devel fontconfig-devel libpng-devel libtiff-devel expect \
+                   bison bzip2-devel libmcrypt-devel pcre-devel zlib-devel  libevent-devel \
+                   curl-devel gettext-devel e2fsprogs-devel krb5-devel libmhash-devel \
+                   libpng-devel.i386 libjpeg-devel.i386 libtool-ltdl-devel @chinese-support \
+                   compat-libstdc++-33
+
+    sed -i "/DEP_PKG/s/0/1/g" $SELF_PATH/id.conf
+fi
+
+if [ "$SYSTEM_TOOL" -eq 0 ]; then
+    Color_Msg cyan "Install System Tools ..."
+    yum -y install sysstat dstat iptraf lszrz elinks ltrace strace ntp jwhois
+    sed -i "/SYSTEM_TOOL/s/0/1/g" $SELF_PATH/id.conf
+fi
+# */}}}
+
+# /* Set System Service {{{*/
+if [ "$SERVICE" -eq 0 ]; then
+    Color_Msg cyan "Turn Off Services"
+    for SRV in atd autofs avahi-daemon bluetooth cpuspeed cups \
+               firstboot gpm haldaemon ip6tables iptables isdn \
+               kudzu lm_sensors mcstrans netfs nfslock pcscd \
+               portmap restorecond rpcidmapd rpcgssd restorecond \
+               xfs yum-updatesd nscd
+    do
+        chkconfig $SRV off
+        service $SRV stop
+    done
+
+    Color_Msg cyan "Turn On Services"
+    for SRV in ntpd sysstat irqbalance
+    do
+        chkconfig --level 3 $SRV on
+        service $SRV start
+    done
+    sed -i "/SERVICE/s/0/1/g" $SELF_PATH/id.conf
+fi
+# /*}}}*/

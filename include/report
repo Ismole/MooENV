@@ -1,0 +1,44 @@
+REP_DIR='/root/.MooENV'
+REP_TXT='report.txt'
+
+mkdir -p $REP_DIR > /dev/null 2>&1
+
+if [ -f ${REP_DIR}/${REP_TXT} ]; then
+    mv ${REP_DIR}/${REP_TXT} ${REP_DIR}/${REP_TXT}-${EXEC_DATE}
+fi
+
+echo  '=== MooENV Installation Report ===' >> ${REP_DIR}/${REP_TXT}
+echo -ne "\n" >> ${REP_DIR}/${REP_TXT}
+echo  "Install date: `date`" >> ${REP_DIR}/${REP_TXT}
+if [ "$INST_TYPE" = 1 ]; then
+    echo  'Install type: L.N.M.P' >> ${REP_DIR}/${REP_TXT}
+else
+    echo  'Install type: L.A.M.P' >> ${REP_DIR}/${REP_TXT}
+fi
+echo  'MySQL install path: /usr/local/mysql' >> ${REP_DIR}/${REP_TXT}
+echo  'MySQL database path: /var/lib/mysql' >> ${REP_DIR}/${REP_TXT}
+echo  "MySQL root password: $MYSQL_ROOT_PASS" >> ${REP_DIR}/${REP_TXT}
+echo  'MySQL configuration file: /etc/my.cnf' >> ${REP_DIR}/${REP_TXT}
+if [ $INST_TYPE = '1' ]; then
+    echo  'Nginx install path: /usr/local/nginx' >> ${REP_DIR}/${REP_TXT}
+    echo  'Nginx configuration path: /usr/local/nginx/conf' >> ${REP_DIR}/${REP_TXT}
+    echo  'Nginx service control: service nginx {start|stop|restart|reload|configtest}' >> ${REP_DIR}/${REP_TXT}
+else
+    echo  'Apache2 install path: /usr/local/apache2' >> ${REP_DIR}/${REP_TXT}
+    echo  'Apache2 configuration path: /usr/local/apache2/conf' >> ${REP_DIR}/${REP_TXT}
+    echo  'Apache2 service control: service apache2 {start|stop|restart|reload|configtest}' >> ${REP_DIR}/${REP_TXT}
+fi
+echo  'Web documnet root path: /data/www/wwwroot/default' >> ${REP_DIR}/${REP_TXT}
+echo  'Web log path: /data/www/logs/default' >> ${REP_DIR}/${REP_TXT}
+echo  'PHP install path: /usr/local/php' >> ${REP_DIR}/${REP_TXT}
+echo  'PHP extension modules path: /usr/local/php/ext' >> ${REP_DIR}/${REP_TXT}
+echo  'PHP configuration file: /usr/local/php/etc/php.ini' >> ${REP_DIR}/${REP_TXT}
+if [ $INST_TYPE = '1' ]; then
+    echo  'PHP-FastCGI configuration file: /usr/local/php/etc/php-fpm.conf' >> ${REP_DIR}/${REP_TXT}
+    echo  'PHP-FastCGI service control: service php-fpm {start|stop|restart|reload}' >> ${REP_DIR}/${REP_TXT}
+fi
+echo  'Memcached install path: /usr/local/memached' >> ${REP_DIR}/${REP_TXT}
+echo  'Tokyo-Cabinet install path: /usr/local/tokyocabinet' >> ${REP_DIR}/${REP_TXT}
+echo  'Tokyo-Tyrant install path: /usr/local/tokyotyrant' >> ${REP_DIR}/${REP_TXT}
+echo  'Backup scripts: /usr/local/sbin' >> ${REP_DIR}/${REP_TXT}
+echo  'Backup store path: /backup' >> ${REP_DIR}/${REP_TXT}
