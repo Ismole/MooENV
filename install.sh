@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VER=1.0.0
+VER=1.0.1
 SELF_PATH=$(cd $(dirname $0);pwd)
 EXEC_DATE=$(date +%Y%m%d)
 STORE_DIR=${SELF_PATH}/src
