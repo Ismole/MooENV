@@ -90,15 +90,8 @@ fi
 # /* Install Development Tools and Lib {{{*/
 if [ "$DEP_PKG" -eq 0 ]; then
     Color_Msg cyan "Install Development Tools and Libs ..."
-    yum -y install @development-tools
-
-    yum -y install libxml2-devel gd-devel openssl-devel ncurses-devel libjpeg-devel \
-                   freetype-devel fontconfig-devel libpng-devel libtiff-devel expect \
-                   bison bzip2-devel libmcrypt-devel pcre-devel zlib-devel  libevent-devel \
-                   curl-devel gettext-devel e2fsprogs-devel krb5-devel libmhash-devel \
-                   libpng-devel.i386 libjpeg-devel.i386 libtool-ltdl-devel @chinese-support \
-                   compat-libstdc++-33
-
+    OS_PKG=`cat ${SELF_PATH}/conf/packages_centos`
+    yum -y install $OS_PKG
     sed -i "/DEP_PKG/s/0/1/g" $SELF_PATH/id.conf
 fi
 

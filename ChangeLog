@@ -2,3 +2,8 @@
 
 Change in 1.0.0 (29 Nov 2011)
 - First release of MooENV;
+
+Change in 1.0.1 (30 Nov 2011)
+- Fix: Dependent RPM packages issue on CentOS 5.x/6.x;
+- Fix: mooenv.res download error;
+- Add: VERSION file in source tree;

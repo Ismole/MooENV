@@ -65,6 +65,13 @@ fi
 # */}}}
 
 # /* Get mooenv.res {{{*/
+if [ -d $STORE_DIR ]; then
+    Color_Msg green "$STORE_DIR exist."
+else
+    Color_Msg red "$STORE_DIR does not exist, creating ..."
+    mkdir -p $STORE_DIR
+fi
+
 if [ -f ${STORE_DIR}/mooenv.res ]; then
     rm -f ${STORE_DIR}/mooenv.res
 fi
