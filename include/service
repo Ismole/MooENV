@@ -9,6 +9,8 @@ while [ $SC_SW -eq 0 ]; do
         if [ $INST_TYPE = '1' ]; then
             chkconfig --level 3 nginx on
             chkconfig --level 3 php-fpm on
+            /etc/rc.d/init.d/nginx start
+            /etc/rc.d/init.d/php-fpm start
         else
             chkconfig --level 3 apache2 on
         fi
@@ -27,6 +29,7 @@ while [ $SC_SW -eq 0 ]; do
     read -p "Do you want MySQL Server start at boot time? (Y/N)" SC
     if [ $SC = 'y' ] || [ $SC = 'Y' ]; then
         chkconfig --level 3 mysqld on
+        /etc/rc.d/init.d/mysqld start
         SC_SW=1
     elif [ $SC = 'n' ] || [ $SC = 'N' ]; then
         SC_SW=1
