@@ -1,138 +1,200 @@
-#! /bin/sh
+#!/bin/bash
 
-### BEGIN INIT INFO
-# Provides:          php-fpm
-# Required-Start:    $remote_fs $network
-# Required-Stop:     $remote_fs $network
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: starts php-fpm
-# Description:       starts the PHP FastCGI Process Manager daemon
-### END INIT INFO
+#
+# chkconfig: 345 70 70
+# description: PHP-FPM server daemon
+#
+# Write by adam.li@ismole.com
+# Modify at 2011/08/29
+# Just for RedHat/CentOS Debian/Ubuntu SUSE
+# source function library
 
-prefix=/usr/local/php
-exec_prefix=${prefix}
+RETVAL=0
+PROG="php-fpm"
+PREFIX="/usr/local/php"
+DAEMON="${PREFIX}/sbin/php-fpm"
+CONF="${PREFIX}/etc/php-fpm.conf"
+PIDFILE="/var/run/$PROG.pid"
+LOCKFILE="/var/lock/$PROG"
 
-php_fpm_BIN=${exec_prefix}/sbin/php-fpm
-php_fpm_CONF=${prefix}/etc/php-fpm.conf
-php_fpm_PID=${prefix}/var/run/php-fpm.pid
+php_opts="--fpm-config $CONF"
 
+#Common Function
+MOVE_TO_COL="echo -en \\033[60G"
+COLOR_SUCCESS="echo -en \\033[1;40;32m"
+COLOR_FAILED="echo -en \\033[1;40;31m"
+COLOR_WARNING="echo -en \\033[1;40;33m"
+COLOR_NORMAL="echo -en \\033[0m"
 
-php_opts="--fpm-config $php_fpm_CONF"
+success(){
+    $MOVE_TO_COL
+    echo -n "["
+    $COLOR_SUCCESS
+    echo -n " OK "
+    $COLOR_NORMAL
+    echo    "]"
+}
 
+failed(){
+    $MOVE_TO_COL
+    echo -n "["
+    $COLOR_FAILED
+    echo -n " FAILED "
+    $COLOR_NORMAL
+    echo    "]"
+}
 
-wait_for_pid () {
-	try=0
+warning(){
+    $MOVE_TO_COL
+    echo -n "["
+    $COLOR_WARNING
+    echo -n " OK "
+    $COLOR_NORMAL
+    echo    "]"
+}
 
-	while test $try -lt 35 ; do
+checkpid() {
+    local i
+    for i in $* ; do
+        [ -d "/proc/$i" ] && return 0
+    done
+    return 1
+}
 
-		case "$1" in
-			'created')
-			if [ -f "$2" ] ; then
-				try=''
-				break
-			fi
-			;;
+configtest() {
+    echo -n "Configtest $PROG : "
+    $DAEMON -t > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        success
+    else
+        failed && exit 1
+    fi
+}
 
-			'removed')
-			if [ ! -f "$2" ] ; then
-				try=''
-				break
-			fi
-			;;
-		esac
+start() {
+    echo -n "Starting $PROG : "
+    PROC_PID=$(pgrep -P 1 -u root ^$PROG)
+    if [ -n "$PROC_PID" ]; then
+        echo -n "is already running."
+        failed && exit 1
+    else
+        $DAEMON $php_opts
+        if [  $? -eq 0 ]; then
+            success && touch $LOCKFILE
+        else
+            failed && exit 1
+        fi
+    fi
+}
 
-		echo -n .
-		try=`expr $try + 1`
-		sleep 1
+stop() {
+    echo -n "Stopping $PROG : "
+    PROC_PID=$(pgrep -P 1 -u root ^$PROG)
+    if [ -z "$PROC_PID" ]; then
+        echo -n "is not running."
+        failed && exit 3
+    else
+        kill -TERM $PROC_PID>/dev/null 2>&1
+        while $(checkpid $PROC_PID); do
+            echo -n "." && sleep 0.001s
+        done
+        success && rm -f $LOCKFILE
+    fi
+}
 
-	done
+quit() {
+    echo -n "Gracefully shuttding down $PROG : "
+    PROC_PID=$(pgrep -P 1 -u root ^$PROG)
+    if [ -z "$PROC_PID" ]; then
+        echo -n "is not running."
+        failed && exit 3
+    else
+        kill -QUIT $PROC_PID >/dev/null 2>&1
+        while $(checkpid $PROC_PID); do
+            echo -n "." && sleep 0.001s
+        done
+        success && rm -f $LOCKFILE
+    fi
+}
 
+reload() {
+    echo -n "Reload service $PROG : "
+    PROC_PID=$(pgrep -P 1 -u root ^$PROG)
+    if [ -z "$PROC_PID" ]; then
+        echo -n "is not running."
+        failed && exit 3
+    else
+        kill -USR2 $PROC_PID
+        success
+    fi
+}
+
+logrotate() {
+    echo -n "Re-opening $PROG log file : "
+    PROC_PID=$(pgrep -P 1 -u root ^$PROG)
+    if [ -z "$PROC_PID" ]; then
+        echo -n "is not running."
+        failed && exit 3
+    else
+        kill -USR1 $PROC_PID 
+        success
+    fi
+}
+
+restart() {
+        echo -n $"Restart $PROG : "
+        PROC_PID=$(pgrep -P 1 -u root ^$PROG)
+        if [ -z "$PROC_PID" ];then
+            echo -n "is not running."
+            warning
+            echo -en "\t" && start
+        else
+           echo
+           echo -en "\t" && stop
+           echo -en "\t" && start
+        fi
+}
+
+status() {
+        PROC_PID=$(pgrep -P 1 -u root ^$PROG)
+        if [ -z "$PROC_PID" ];then
+            echo "$PROG is stopped"
+        else
+            echo "$PROG (pid $PROC_PID) is running..."
+        fi
 }
 
 case "$1" in
-	start)
-		echo -n "Starting php-fpm "
-
-		$php_fpm_BIN $php_opts
-
-		if [ "$?" != 0 ] ; then
-			echo " failed"
-			exit 1
-		fi
-
-		wait_for_pid created $php_fpm_PID
-
-		if [ -n "$try" ] ; then
-			echo " failed"
-			exit 1
-		else
-			echo " done"
-		fi
+    start)
+        configtest
+        start    
+        ;;
+    stop)
+        stop
 	;;
-
-	stop)
-		echo -n "Gracefully shutting down php-fpm "
-
-		if [ ! -r $php_fpm_PID ] ; then
-			echo "warning, no pid file found - php-fpm is not running ?"
-			exit 1
-		fi
-
-		kill -QUIT `cat $php_fpm_PID`
-
-		wait_for_pid removed $php_fpm_PID
-
-		if [ -n "$try" ] ; then
-			echo " failed. Use force-exit"
-			exit 1
-		else
-			echo " done"
-		fi
+    restart)
+        configtest
+        restart
+        ;;
+    reload)
+        configtest
+        reload
+        ;;
+    status)
+        status
+        ;;
+    quit)
+        quit
 	;;
-
-	force-quit)
-		echo -n "Terminating php-fpm "
-
-		if [ ! -r $php_fpm_PID ] ; then
-			echo "warning, no pid file found - php-fpm is not running ?"
-			exit 1
-		fi
-
-		kill -TERM `cat $php_fpm_PID`
-
-		wait_for_pid removed $php_fpm_PID
-
-		if [ -n "$try" ] ; then
-			echo " failed"
-			exit 1
-		else
-			echo " done"
-		fi
-	;;
-
-	restart)
-		$0 stop
-		$0 start
-	;;
-
-	reload)
-
-		echo -n "Reload service php-fpm "
-
-		if [ ! -r $php_fpm_PID ] ; then
-			echo "warning, no pid file found - php-fpm is not running ?"
-			exit 1
-		fi
-
-		kill -USR2 `cat $php_fpm_PID`
-
-		echo " done"
-	;;
-
-	*)
-		echo "Usage: $0 {start|stop|force-quit|restart|reload}"
-		exit 1
-	;;
+    logrotate)
+        logrotate
+        ;;
+    configtest)
+        configtest
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|quit|status|reload|restart|logrotate|configtest}"
+        exit 1
+    ;;
 
 esac
