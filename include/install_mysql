@@ -37,6 +37,8 @@ if [ "$MYSQL" -eq 0 ]; then
     MYSQL_SW=0
     while [ $MYSQL_SW -eq 0 ]; do
         Color_Msg cyan ' === Set MySQL root password ==='
+        unset MYSQL_ROOT_PASS
+        unset MYSQL_ROOT_PASS2
         read -s -p '*** Input  password:' MYSQL_ROOT_PASS
         echo -ne "\n"
         read -s -p '*** Verify password:' MYSQL_ROOT_PASS2
@@ -50,8 +52,11 @@ if [ "$MYSQL" -eq 0 ]; then
         else
             /usr/local/mysql/bin/mysqladmin -uroot password $MYSQL_ROOT_PASS
             Color_Msg green 'MySQL root password has been set!'
+            echo "$MYSQL_ROOT_PASS" > $SELF_PATH/conf/mysql/ROOT_PASS
             MYSQL_SW=1
         fi
     done
     sed -i "/MYSQL/s/0/1/g" $SELF_PATH/id.conf
+else
+    MYSQL_ROOT_PASS=`cat ${SELF_PATH}/conf/mysql/ROOT_PASS`
 fi

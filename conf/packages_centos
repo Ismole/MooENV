@@ -97,6 +97,7 @@ libX11
 dracut  
 hal-info  
 libXpm  
+libXpm.i386
 glibc-headers  
 wireless-tools  
 libXcomposite  
@@ -212,6 +213,7 @@ libcap
 libXdmcp-devel  
 iptables  
 libXpm-devel  
+libXpm-devel.i386
 which  
 perl-Test-Simple  
 libgcrypt  

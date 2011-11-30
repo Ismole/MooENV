@@ -6,4 +6,9 @@ Change in 1.0.0 (29 Nov 2011)
 Change in 1.0.1 (30 Nov 2011)
 - Fix: Dependent RPM packages issue on CentOS 5.x/6.x;
 - Fix: mooenv.res download error;
+- Fix: memcache.so can not be loaded in PHP;
+- Fix: lack of libXpm packeage on CentOS 5 x86_64;
+- Fix: MySQL information can not be recroded in report file;
+- Fix: php-fpm start failed on some system;
+- Fix: Some other minor issues;
 - Add: VERSION file in source tree;

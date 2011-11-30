@@ -112,4 +112,4 @@ alias rm='rm'
 echo 'export PATH="$PATH:/usr/local/mysql/bin:/usr/local/nginx/bin:/usr/local/php/bin:/usr/local/memcached/bin"' >> /etc/profile
 
 Color_Msg green "All Done!"
-Color_Msg yellow "To get MooENV environment information read /root/.MooPHP/report.txt first!"
+Color_Msg yellow "To get MooENV environment information read /root/.MooENV/report.txt first!"
