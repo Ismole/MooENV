@@ -1,0 +1,22 @@
+$GIT_HUB_URL='git@github.com:Ismole/MooENV.git'
+
+1. Get latest git:
+# git clone $GIT_HUB_URL /SOME/WHERE
+
+2. Commit to github
+- Upload your SSH public key to Github account;
+- Confirm your SSH private key file are stored
+  in your development Linux OS;
+
+# git clone $GIT_HUB_URL /SOME/WHERE
+# git pull
+# git config --global user.name "YOUR NAME"
+# git config --global user.email "YOUR MAIL"
+# git status
+# git commit -m 'DESCRIPTION'
+# git add SOME_FILE_PATH
+# git rm SOME_FILE_PATH
+# git push
+
+More information about Git can found here:
+<http://schacon.github.com/git/user-manual.html>

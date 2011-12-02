@@ -1,0 +1,24 @@
+MooENV Before Commit Operations
+===============================
+
+Before commit MooENV release to public, you must do the following operations:
+
+1. Confirm all variables in $SELF_PATH/id.conf are set to 0;
+
+2. Delete $SELF_PATH/conf/INST_TYPE;
+
+3. Delete $SELF_PATH/src directory;
+
+4. Confirm there are no .*.swap file exist under $SELF_PATH;
+
+5. Edit $SELF_PATH/ChangeLog;
+
+6. Edit $SELF_PATH/VERSION;
+
+7. Change $VER value in $SELF_PATH/install.sh;
+
+8. Edit latest_ver file in remote packages download site;
+
+9. If packages updated, do the following:
+   * run gen_res.sh to generate mooenv.res file and upload it to remote
+     download site;

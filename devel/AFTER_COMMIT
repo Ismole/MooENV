@@ -1,0 +1,12 @@
+MooENV After Commit Operations
+==============================
+
+After commit MooENV release to public, you must do the following operations:
+
+1. Update Chanelog page in Github MooENV WIKI;
+
+2. Generate the new version of MooENV in tar.gz format, the file name format
+   is MooENV-{main.secondary.fix}.tar.gz, and upload to Github;
+
+3. On the beginning of every month, you should update the Roadmap page in
+   Github MooENV WIKI;
