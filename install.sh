@@ -35,7 +35,7 @@ if [ `id -u` -ne '0' ]; then
 fi
 
 # /* Check System Health {{{*/
-DMESG_ERR=`dmesg | grep error`
+DMESG_ERR=`dmesg | grep error | grep -v 'error=0x04'`
 if [ -n "$DMESG_ERR" ]; then
     Color_Msg red 'System Error Were Detected!'
     Color_Msg red 'Please fix these errors before continue.'
