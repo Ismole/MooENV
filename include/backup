@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # /* Bakcup Scripts {{{*/
 if [ $BACKUP -eq 0 ]; then
     mkdir -p /backup/conf > /dev/null 2>&1
@@ -11,7 +13,7 @@ if [ $BACKUP -eq 0 ]; then
     Color_Msg cyan '=== Environment Backup Setting ==='
     BK_SW=0
     while [ $BK_SW -eq 0 ]; do
-        read -p "Do you want to add backup job to system cron? (Y/N)" BK
+        read -p "Do you want to add backup job to system cron? (y/n)" BK
         if [ $BK = 'y' ] || [ $BK = 'Y' ]; then
             echo '0 4 * * * root /usr/local/sbin/backup_mysql.sh > /dev/null 2>&1' >> /var/spool/cron/root
             echo '0 4 * * * root /usr/local/sbin/backup_www.sh > /dev/null 2>&1' >> /var/spool/cron/root
@@ -21,7 +23,7 @@ if [ $BACKUP -eq 0 ]; then
         elif [ $BK = 'n' ] || [ $BK = 'N' ]; then
             BK_SW=1
         else
-            Color_Msg red "\n\n\nInvaild answer, select angin. (Y/N)"
+            Color_Msg red "\n\n\nInvaild answer, select angin. (y/n)"
             BK_SW=0
         fi
     done

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 Install_Failed(){
 # Usage: Install_Failed 'ERROR_MESSAGE'
 # /*Body of Color_Msg function {{{*/
@@ -38,6 +40,38 @@ case $COLOR in
 esac
 echo -e $COLOR $MSG
 echo -ne "\033[0m"
+# /*}}}*/
+}
+
+Comp_Ver(){
+# Usage: Comp_Ver "$VER1" "$VER2"
+# # /*Body of Comp_Ver function {{{*/
+local VER1_M=`echo $1|cut -d\. -f1`
+local VER1_S=`echo $1|cut -d\. -f2`
+local VER1_F=`echo $1|cut -d\. -f3`
+local VER2_M=`echo $2|cut -d\. -f1`
+local VER2_S=`echo $2|cut -d\. -f2`
+local VER2_F=`echo $2|cut -d\. -f3`
+
+if [ $VER1_M -gt $VER2_M ]; then
+    VER_COMP='gt'
+elif [ $VER1_M -lt $VER2_M ]; then
+    VER_COMP='lt'
+else
+    if [ $VER1_S -gt $VER2_S ]; then
+        VER_COMP='gt'
+    elif [ $VER1_S -lt $VER2_S ]; then
+        VER_COMP='lt'
+    else
+        if [ $VER1_F -gt $VER2_F ]; then
+            VER_COMP='gt'
+        elif [ $VER1_F -lt $VER2_F ]; then
+            VER_COMP='lt'
+        else
+            VER_COMP='eq'
+        fi
+    fi
+fi
 # /*}}}*/
 }
 

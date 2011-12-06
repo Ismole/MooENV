@@ -1,7 +1,14 @@
                     ChangeLog file for MooENV
 
-Change in 1.0.0 (29 Nov 2011)
-- First release of MooENV;
+Change in 1.0.2 (30 Dec 2011)
+- Fix: Now, the licese information shows only once;
+- Fix: Can not re-install MooENV;
+- Fix: Standardize code formation;
+- Fix: Some other minor issues;
+- Add: phpMyAdmin was integrated;
+- Add: PPTP VPN server was integraged;
+- Add: Support upgrade from early versions;
+- Add: Create web virtual host and MySQL database by end user;
 
 Change in 1.0.1 (30 Nov 2011)
 - Fix: Dependent RPM packages issue on CentOS 5.x/6.x;
@@ -12,3 +19,6 @@ Change in 1.0.1 (30 Nov 2011)
 - Fix: php-fpm start failed on some system;
 - Fix: Some other minor issues;
 - Add: VERSION file in source tree;
+
+Change in 1.0.0 (29 Nov 2011)
+- First release of MooENV;

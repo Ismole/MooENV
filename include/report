@@ -1,3 +1,5 @@
+#!/bin/bash
+
 REP_DIR='/root/.MooENV'
 REP_TXT='report.txt'
 

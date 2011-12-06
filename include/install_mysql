@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ "$MYSQL" -eq 0 ]; then
     Color_Msg cyan 'Install MySQL Server ...'
     useradd -M mysql -s /sbin/nologin

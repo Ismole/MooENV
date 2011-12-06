@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # /* Modify /etc/sysctl.conf {{{*/
 if [ "$SYSCTL" -eq 0 ]; then
     mv /etc/sysctl.conf /etc/sysctl.conf.$EXEC_DATE

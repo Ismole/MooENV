@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ "$WEB" -eq 0 ];then
     Color_Msg cyan 'Install Web Server ...'
     useradd www -M -s /sbin/nologin

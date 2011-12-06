@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Welcome
 Color_Msg cyan '=================================='
 Color_Msg cyan '| Welcome to MooENV Installation |'
@@ -19,14 +21,18 @@ echo -ne "\n"
 Color_Msg def 'You should have received a copy of the GNU General Public License'
 Color_Msg def 'along with this program.  If not, see <http://www.gnu.org/licenses/>.'
 echo -ne "\n"
-Color_Msg cyan 'Enter for reading GNU General Public License'
-read
-more ./GNU-GPL-V3.txt
-echo -ne "\n\n"
-read -p "Do You Agree To The Terms Of This License? (Y/N)" EULA
-if [ $EULA != 'y' ] && [ $EULA != 'Y' ]; then
-    Color_Msg red 'You did not agree to the license. Installation Aborted!'
-    exit 1
+if [ "$EULA" -eq 0 ]; then
+    Color_Msg cyan 'Enter for reading GNU General Public License'
+    read
+    more ./LICENSE
+    echo -ne "\n\n"
+    read -p "Do You Agree To The Terms Of This License? (y/n)" EULA
+    if [ $EULA != 'y' ] && [ $EULA != 'Y' ]; then
+        Color_Msg red 'You did not agree to the license. Installation Aborted!'
+        exit 1
+    else
+        sed -i "/EULA/s/0/1/g" $SELF_PATH/id.conf
+    fi
 fi
 
 echo -ne "\n\n"

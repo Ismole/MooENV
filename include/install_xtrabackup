@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ $XTRABACKUP -eq 0 ]; then
     if [ $PLATFORM = 'x86_64' ]; then
         XTRABACKUP_SRC=$XTRABACKUP64_SRC

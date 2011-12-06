@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # /* Install zlib {{{*/
 if [ "$ZLIB" -eq 0 ]; then
     Color_Msg cyan "Install zlib ..."

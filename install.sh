@@ -18,12 +18,19 @@ elif [ "$1" = '-v' ] || [ "$1" = '--version' ]; then
     echo MooENV-"$VER"
     exit 0
 elif [ "$1" = '-c' ] || [ "$1" = '--check-update' ]; then
-    L_VER=`curl -s http://syslab.ismole.com/downloads/MooENV/latest_ver`
-    Color_Msg cyan "The Latest Version is $L_VER"
-    Color_Msg cyan "Current Version is $VER"
+    L_VER=`curl -s http://syslab.ismole.com/downloads/MooENV/latest_ver | tr -d '\r\n'`
+    Comp_Ver $VER $L_VER
+    if [ $VER_COMP = 'gt' ]; then
+        Color_Msg yellow 'What is this fucking version? You are faster than me?' # Just a kidding :)
+    elif [ $VER_COMP = 'lt' ]; then
+        Color_Msg red 'A New Version of MooENV Found!'
+        Color_Msg cyan "The latest version is $L_VER"
+        Color_Msg cyan "The current version is $VER"
+    else
+        Color_Msg green 'You have the latest version!'
+        Color_Msg cyan "The current version is $VER"
+    fi
     echo -ne "\n"
-    Color_Msg cyan 'For more information go to:'
-    Color_Msg cyan 'https://github.com/Ismole/MooENV'
     exit 0
 fi
 # */}}}
@@ -31,6 +38,7 @@ fi
 # Are you root?
 if [ `id -u` -ne '0' ]; then
     echo 'MooENV needs root privilege to run!'
+    echo 'Please login with root or su root.'
     exit 1
 fi
 
