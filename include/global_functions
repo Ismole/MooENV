@@ -41,22 +41,6 @@ echo -ne "\033[0m"
 # /*}}}*/
 }
 
-parser_file(){
-# Usage:parser_file FILENAME
-# /*Body of parser_file function {{{*/
-SRC=$(echo $1|cut -d\| -f1)
-SUM=$(echo $1|cut -d\| -f2)
-FILE_EXT=$(echo $SRC|awk -F. '{print $NF}')
-if [ $FILE_EXT = 'gz' ] || [ $FILE_EXT = 'bz2' ]; then
-    SRC_DIR=$(basename $SRC ".tar.$FILE_EXT")
-elif [ $FILE_EXT = 'tar' ] || [ $FILE_EXT = 'tgz' ]; then
-    SRC_DIR=$(basename $SRC ".$FILE_EXT")
-else
-    Color_Msg red "Unkown file format $SRC"
-fi
-# /*}}}*/
-}
-
 get_file(){
 # Usage: get_file 'REMOTE_FILE_URL' 'FILE_MD5SUM'
 # /*Body of get_file function {{{*/
@@ -78,26 +62,27 @@ fi
 # }}}*/
 }
 
-unpack(){
+file_proc(){
 # Usage: unpack 'COMPRESS_FILE'
 # /*Body of unpack function {{{*/
 Color_Msg green "Unpacking source file: $SRC ..."
-case $FILE_EXT in
+SRC=$(echo $1|cut -d\| -f1)
+SUM=$(echo $1|cut -d\| -f2)
+get_file
+FILE_TYPE=$(file -biz $SRC |tr -d ";,()x-"|awk -F" |/" '{if(NF<4){print $2}else{print $2"."$NF}}')
+case $FILE_TYPE in
     tar)
-        tar xf $SRC
+        SRC_DIR=$(tar xvf $SRC |head -1)
         ;;
-    gz)
-        tar zxf $SRC
+    tar.gzip)
+        SRC_DIR=$(tar zxvf $SRC |head -1)
         ;;
-    tgz)
-        tar zxf $SRC
-        ;;
-    bz2)
-        tar jxf $SRC
+    tar.bzip2)
+        SRC_DIR=$(tar jxvf $SRC |head -1)
         ;;
     *)
-        Color_Msg red "$SRC: Unknown File Format!"
-    ;;
+        Color_Msg red "$SRC: Can not support the $FILE_TYPE File Format!"
+        ;;
 esac
 # /*}}}*/
 }

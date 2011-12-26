@@ -3,10 +3,8 @@ if [ "$ZLIB" -eq 0 ]; then
     Color_Msg cyan "Install zlib ..."
     cd ${STORE_DIR}
     unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
-    parser_file ${ZLIB_SRC}
     rm -rf  "${SRC_DIR}"
-    get_file
-    unpack
+    file_proc
     COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-zlib`
     cd $SRC_DIR
     Color_Msg green "Configure $SRC ..."
@@ -24,10 +22,7 @@ if [ "$CARES" -eq 0 ]; then
     Color_Msg cyan "Install c-ares ..."
     cd ${STORE_DIR}
     unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
-    parser_file ${C_SRC}
-    rm -rf  "${SRC_DIR}"
-    get_file
-    unpack
+    file_proc
     COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-c-ares`
     cd $SRC_DIR
     Color_Msg green "Configure $SRC ..."
@@ -45,10 +40,7 @@ if [ "$CURL" -eq 0 ]; then
     Color_Msg cyan "Install curl ..."
     cd ${STORE_DIR}
     unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
-    parser_file ${CURL_SRC}
-    rm -rf  "${SRC_DIR}"
-    get_file
-    unpack
+    file_proc
     COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-curl`
     cd $SRC_DIR
     Color_Msg green "Configure $SRC ..."
@@ -66,10 +58,7 @@ if [ "$PCRE" -eq 0 ]; then
     Color_Msg cyan "Install PCRE ..."
     cd ${STORE_DIR}
     unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
-    parser_file ${PCRE_SRC}
-    rm -rf  "${SRC_DIR}"
-    get_file
-    unpack
+    file_proc
     COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-pcre`
     cd $SRC_DIR
     Color_Msg green "Configure $SRC ..."
@@ -87,10 +76,7 @@ if [ "$PHP" -eq 0 ]; then
     Color_Msg cyan "Install PHP ..."
     cd ${STORE_DIR}
     unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
-    parser_file ${PHP_SRC}
-    rm -rf  "${SRC_DIR}"
-    get_file
-    unpack
+    file_proc
     # /* PHP-FastCGI or PHP SO {{{*/
     if [ $INST_TYPE = '1' ]; then
         COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-php-nginx`
