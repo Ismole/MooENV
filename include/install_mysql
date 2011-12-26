@@ -3,7 +3,10 @@ if [ "$MYSQL" -eq 0 ]; then
     useradd -M mysql -s /sbin/nologin
     cd ${STORE_DIR}
     unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
-    file_proc || Install_Failed "$SRC"
+    parser_file ${MYSQL_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack || Install_Failed "$SRC"
     Color_Msg cyan 'Installing ...'
     chown mysql.root -R ${SRC_DIR}
     mv ${SRC_DIR} /usr/local/
