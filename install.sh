@@ -90,33 +90,97 @@ alias rm='rm'
 # Installation Wizard
 . $SELF_PATH/include/wizard
 . ${STORE_DIR}/mooenv.res
+. $SELF_PATH/include/updata
 
 # System Modify
 . $SELF_PATH/include/system_mod
 
-# Install MySQL Server
-. $SELF_PATH/include/install_mysql
+if [ -f "/root/.MooENV/report.txt" ] ;then
+    Color_Msg cyan "You have already intall the MooENV,do you want to updata ? (Y/N)"
+    read UP_FLAG
+    while :
+    do
+        case $UP_FLAG in
+            "Y"|"y"|yes|YES)
+            if [ -f ${STORE_DIR}/mooenv.res.updata ]; then
+                rm -f ${STORE_DIR}/mooenv.res.updata
+            fi
+            wget -c -t0 -nH ${DOWNLOAD_SITE}/mooenv.res.updata -O ${STORE_DIR}/mooenv.res.updata || Install_Failed ' getting mooenv.res.updata'
+            . ${STORE_DIR}/mooenv.res.updata
+            MooENV_Updata
+            break 1
+               ;;
+            "N"|"n"|no|NO)
 
-# Install MySQL Xtrabackup
-. $SELF_PATH/include/install_xtrabackup
+                  # Install MySQL Server
+                  . $SELF_PATH/include/install_mysql
 
-# Install HTTP Server
-. $SELF_PATH/include/install_httpd
+                  # Install MySQL Xtrabackup
+                  . $SELF_PATH/include/install_xtrabackup
 
-# Install PHP
-. $SELF_PATH/include/install_php
+                  # Install HTTP Server
+                  . $SELF_PATH/include/install_httpd
 
-# Install NoSQL
-. $SELF_PATH/include/install_nosql
+                  # Install PHP
+                  . $SELF_PATH/include/install_php
 
-# Backup
-. $SELF_PATH/include/backup
+                  # Install NoSQL
+                  . $SELF_PATH/include/install_nosql
 
-# Service
-. $SELF_PATH/include/service
+                  # Backup
+                  . $SELF_PATH/include/backup
 
-# Report
-. $SELF_PATH/include/report
+                  # Service
+                  . $SELF_PATH/include/service
+
+                  # Report
+                  . $SELF_PATH/include/report
+
+                  break 1
+               ;;
+            *)
+               Color_Msg red "\nInvaild answer, select angin. "
+               Color_Msg cyan "You have already intall the MooENV,do you want to updata ? (Y/N)"
+               read  UP_FLAG
+               continue
+               ;;
+        esac
+    done
+
+else
+
+    # Install MySQL Server
+    . $SELF_PATH/include/install_mysql
+
+    # Install MySQL Xtrabackup
+    . $SELF_PATH/include/install_xtrabackup
+
+    # Install HTTP Server
+    . $SELF_PATH/include/install_httpd
+
+    # Install PHP
+    . $SELF_PATH/include/install_php
+
+    # Install NoSQL
+    . $SELF_PATH/include/install_nosql
+
+    # Backup
+    . $SELF_PATH/include/backup
+
+    # Service
+    . $SELF_PATH/include/service
+
+    # Report
+    . $SELF_PATH/include/report
+fi
+if [ "$INST_TYPE" = "1" ] ;then
+    . $SELF_PATH/include/install_pma
+    . $SELF_PATH/include/config_web_virtual_host
+fi
+. $SELF_PATH/include/install_pptpd
+. $SELF_PATH/include/create_mysql_db
+. $SELF_PATH/include/install_pureftpd
+
 
 echo 'export PATH="$PATH:/usr/local/mysql/bin:/usr/local/nginx/bin:/usr/local/php/bin:/usr/local/memcached/bin"' >> /etc/profile
 
