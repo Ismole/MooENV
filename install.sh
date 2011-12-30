@@ -6,6 +6,7 @@ EXEC_DATE=$(date +%Y%m%d)
 STORE_DIR=${SELF_PATH}/src
 DOWNLOAD_SITE='http://syslab.ismole.com/downloads/MooENV/packages'
 PACKAGES_RES='mooenv.res'
+RUN_TIME=$(date  +%Y%m%d-%H:%M:%S)
 CHECK_MD5=1
 
 . $SELF_PATH/include/global_functions
