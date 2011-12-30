@@ -1,0 +1,263 @@
+#!/bin/bash
+
+Mysql_Updata(){
+    Color_Msg cyan 'Updata MySQL Server ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${MYSQL_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack || Install_Failed "$SRC"
+    Color_Msg cyan 'Updata Now ...'
+    chown mysql.root -R ${SRC_DIR}
+    [ -d "/usr/local/${SRC_DIR}" ] || mv ${SRC_DIR} /usr/local/
+    rm -f /usr/local/mysql
+    ln -sf /usr/local/${SRC_DIR} /usr/local/mysql
+    Color_Msg cyan 'Please restart mysql service'
+}
+
+Nginx_Updata(){
+    #back old file
+    unset COMPO_CONFIG
+    Color_Msg cyan "Backup the older version"
+    mv /usr/local/nginx /usr/local/nginx_bak.$RUN_TIME
+    OLD_NGINX_DIR="/usr/local/nginx_bak.$RUN_TIME"
+    #updata
+    Color_Msg cyan 'Updata Nginx Server ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    WEB_SRC=${NGINX_SRC}
+
+        for DEP_LIB in $ZLIB_SRC $OPENSSL_SRC $PCRE_SRC
+        do
+            cd ${STORE_DIR}
+            unset SRC SRC_DIR FILE_EXT SUM
+            parser_file "${DEP_LIB}"
+            get_file
+            unpack || Install_Failed "$SRC"
+            mv $SRC_DIR `echo $SRC_DIR | cut -d\- -f1`
+        done
+
+    COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-nginx`
+    echo $COMPO_CONFIG
+    unset SRC SRC_DIR FILE_EXT SUM
+    parser_file ${WEB_SRC}
+    get_file
+    rm -rf $SRC_DIR
+    unpack
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    eval $COMPO_CONFIG || Install_Failed "$SRC"
+    $COMPO_CONFIG || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    #cp config file
+    Color_Msg cyan "Copy Nginx config file ..."
+    cp -r ${OLD_NGINX_DIR}/conf/vhosts /usr/local/nginx/conf/
+    rm -f /usr/local/nginx/conf/nginx.conf
+    cp ${OLD_NGINX_DIR}/conf/nginx.conf /usr/local/nginx/conf/
+    mkdir /usr/local/nginx/bin
+    cp ${SELF_PATH}/conf/nginx/nginx_cronolog /usr/local/nginx/bin/
+    Color_Msg cyan "Updata done,please restart your nginx service"
+}
+
+PHP_Updata(){
+    cp -r /usr/local/php /usr/local/php_bak.$RUN_TIME
+    OLD_PHP_DIR="/usr/local/php_bak.$RUN_TIME"
+    Color_Msg cyan "Updata PHP ..."
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${PHP_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    # /* PHP-FastCGI or PHP SO {{{*/
+        COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-php-nginx`
+    # */}}}
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    eval $COMPO_CONFIG || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make && rm -rf /usr/local/php || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    make install || Install_Failed "$SRC"
+    cd $SELF_PATH
+    Color_Msg cyan "Configure PHP Environmnet ..."
+    cp ${OLD_PHP_DIR}/etc/php.ini /usr/local/php/etc/
+
+    # /* Configure PHP-FastCGI {{{*/
+
+        rm -f /usr/local/php/etc/php-fpm.conf
+        cp ${OLD_PHP_DIR}/etc/php-fpm.conf /usr/local/php/etc/
+        cp -f conf/php/php-fpm /etc/rc.d/init.d/
+
+    # */}}}
+    mkdir /usr/local/php/ext
+}
+
+
+APC_UPDATA(){
+        cd ${STORE_DIR}
+        unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+        parser_file ${APC_SRC}
+        rm -rf  "${SRC_DIR}"
+        get_file
+        unpack
+        cd $SRC_DIR
+        Color_Msg green "Configure $SRC ..."
+        /usr/local/php/bin/phpize || Install_Failed "$SRC"
+        ./configure '--with-php-config=/usr/local/php/bin/php-config' || Install_Failed "$SRC"
+        Color_Msg green "Making $SRC ..."
+        make || Install_Failed "$SRC"
+        Color_Msg green "Installing $SRC ..."
+        cp modules/apc.so /usr/local/php/ext/ || Install_Failed "$SRC"
+        cd $SELF_PATH
+}
+
+EACCELERATOR_UPDATA(){
+        cd ${STORE_DIR}
+        unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+        parser_file ${EACCELERATOR_SRC}
+        rm -rf  "${SRC_DIR}"
+        get_file
+        unpack
+        cd $SRC_DIR
+        Color_Msg green "Configure $SRC ..."
+        /usr/local/php/bin/phpize || Install_Failed "$SRC"
+        ./configure '--enable-eaccelerator' '--with-php-config=/usr/local/php/bin/php-config' || Install_Failed "$SRC"
+        Color_Msg green "Making $SRC ..."
+        make || Install_Failed "$SRC"
+        Color_Msg green "Installing $SRC ..."
+        cp modules/eaccelerator.so /usr/local/php/ext/ || Install_Failed "$SRC"
+        cd $SELF_PATH
+}
+
+MEMCACHE_UPDATA(){
+    Color_Msg cyan 'Install PHP PECL extension: memcached ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${MEMCACHE_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    cd $SRC_DIR
+    Color_Msg green "Configure $SRC ..."
+    /usr/local/php/bin/phpize || Install_Failed "$SRC"
+    ./configure '--with-php-config=/usr/local/php/bin/php-config' \
+      '--with-libmemcached-dir=/usr/local/libmemcached' \
+      '--enable-memcached' || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    cp modules/memcache.so /usr/local/php/ext/ || Install_Failed "$SRC"
+}
+
+PECL_TT_UPDATA(){
+    Color_Msg cyan 'Install Tokyo-Tyrant PECL Extension ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    parser_file ${TOKYO_TYRANT_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack
+    cd ${SRC_DIR}
+    Color_Msg green "Configure $SRC ..."
+    /usr/local/php/bin/phpize || Install_Failed "$SRC"
+    ./configure --with-tokyo-tyrant=/usr/local/ttserver \
+        --with-tokyo-cabinet-dir=/usr/local/tokyocabinet \
+        --with-php-config=/usr/local/php/bin/php-config || \
+        Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    cp modules/tokyo_tyrant.so /usr/local/php/ext || Install_Failed "$SRC"
+    cd ${STORE_DIR}
+}
+
+PHP_prce_Updata(){
+    OLD_PHP_DIR="/usr/local/php_bak.$RUN_TIME"
+    for i in `ls $OLD_PHP_DIR/ext|cut -d '.' -f1`
+    do 
+       case $i in 
+           eaccelerator)
+               echo eaccelerator
+               EACCELERATOR_UPDATA
+           ;;
+           apc)
+               echo apc
+               APC_UPDATA
+           ;;
+           memcache)
+               echo memcache
+               MEMCACHE_UPDATA
+           ;;
+           tokyo_tyrant)
+               echo tokyo_tyrant
+               PECL_TT_UPDATA
+           ;;
+           *)
+           ;;
+       esac
+    done
+}
+
+
+Updata_Check(){
+    unset UPDATE_FLAG new_ver old_ver
+    NEW=$1
+    OLD=$2
+    for i in `seq 1 3`
+    do 
+        new_ver=`echo "$NEW" |cut -d '.' -f$i`
+        old_ver=`echo "$OLD"|cut -d '.' -f$i` 
+        if [ "$new_ver" -gt "$old_ver" ] ;then
+            UPDATE_FLAG="true"  
+            break
+        fi
+    done
+}
+
+MooENV_Updata(){
+
+    #nginx check
+    if [ -f "/usr/local/nginx/sbin/nginx" ] ;then
+        NGINX_NEW_VER=`echo $NGINX_SRC|awk -F '[-,tar]' '{print $2}'|cut -d '.' -f1-3`
+        NGINX_VER=`/usr/local/nginx/sbin/nginx -v 2>&1 |awk -F '/' '{print $2}'`
+        Updata_Check $NGINX_NEW_VER $NGINX_VER
+        if [ "$UPDATE_FLAG" = "true" ] ;then
+            Nginx_Updata
+        fi
+    else 
+        Color_Msg red "Can't find nginx"
+    fi
+
+    #mysql check
+    if [ -f "/usr/local/mysql/bin/mysql" ] ;then 
+        MYSQL_NEW_VER=`echo $MYSQL_SRC|awk -F '[-,tar]' '{print $2}'`
+        MYSQL_VER=`/usr/local/mysql/bin/mysql -V|awk 'gsub(",",""){print $5}'`
+        Updata_Check $MYSQL_NEW_VER $MYSQL_VER
+        if [ "$UPDATE_FLAG" = "true" ] ;then
+            Mysql_Updata
+        fi
+    else
+        Color_Msg red "Can't find mysql"
+    fi
+    
+    #php check
+    if [ -f "/usr/local/php/bin/php" ] ;then 
+        PHP_NEW_VER=`echo $PHP_SRC|awk -F '[-,tar]' '{print $2}'|cut -d '.' -f1-3`
+        PHP_VER=`/usr/local/php/bin/php -v |awk '/built/ {print $2}'`
+        Updata_Check $PHP_NEW_VER $PHP_VER
+        if [ "$UPDATE_FLAG" = "true" ] ;then
+            PHP_Updata
+            PHP_prce_Updata
+        fi
+    else
+        Color_Msg red "Can't find php"
+    fi
+    
+    Color_Msg red "Updata done,please repleace the php nginx mysql progress by yourself"
+}
+    

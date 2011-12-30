@@ -1,0 +1,58 @@
+#!/bin/bash
+
+CHECK_DB_NAME(){
+    unset DB_NAME 
+    echo
+    Color_Msg cyan "please input mysql DB name  : " NL
+    read DB_NAME
+    while :
+    do
+        if [ -z "$DB_NAME" ];then
+            echo 
+            Color_Msg red "Input is null,please reinput:" NL
+            read  DB_NAME
+            continue
+        fi
+        for i in `mysql -uroot -p"$DB_PWD" -e "show databases;" `
+        do 
+            if [ "$i" = "$DB_NAME" ] ;then
+                Color_Msg red "\n\nThe DB already exists,please change for another:" NL
+                read DB_NAME
+                continue 2
+            fi
+        done
+        mysql -uroot -p"$DB_PWD" -e "create database $DB_NAME default charset utf8;" && break
+    done
+    Color_Msg green "The mysql database $DB_NAME create OK! default charset utf8!"
+}
+CHECK_MYSQL_PWD(){
+    unset PWD_CHECK DB_PWD
+    Color_Msg cyan "please input mysql root password : " NL
+    read -s  DB_PWD    
+    while : #检查密码
+    do
+        if [ -z "$DB_PWD" ] ;then
+            echo
+            Color_Msg red "the password is null,please reinput:" NL
+            read -s  DB_PWD
+            continue
+        fi
+        PWD_CHECK=$(mysqladmin -uroot -p"$DB_PWD" ping 2>/dev/null|grep alive)
+        if [ -z "$PWD_CHECK" ];then
+            echo 
+            Color_Msg red "the password is wrong,please reinput:" NL
+            read -s  DB_PWD
+            continue
+        elif [ "$PWD_CHECK" = "mysqld is alive" ];then
+           # 检查并创建数据库
+           CHECK_DB_NAME
+           break
+        fi
+    done # end while : 密码检查    
+}
+
+
+Execute_Input_CHECK "Do You want to create a new mysql database ? (Y/N)"
+if [ "$IS_EXECUTE" = "ture" ];then
+    CHECK_MYSQL_PWD
+fi

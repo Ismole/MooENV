@@ -1,0 +1,14 @@
+name pptpd
+refuse-pap
+refuse-chap
+refuse-mschap
+require-mschap-v2
+require-mppe-128
+ms-dns 202.106.196.115
+ms-dns 202.106.46.151
+proxyarp
+lock
+nobsdcomp 
+novj
+novjccomp
+nologfd

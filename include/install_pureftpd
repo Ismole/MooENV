@@ -1,0 +1,26 @@
+#!/bin/bash
+
+Execute_Input_CHECK "Do You want to install pure-ftpd ? (Y/N)"
+if [ "$IS_EXECUTE" = "ture" ];then
+    Color_Msg cyan 'Install pure-ftpd ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG
+    COMPO_CONFIG=""config-pureftpd
+    parser_file ${PUREFTPD_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack || Install_Failed "$SRC"
+    COMPO_CONFIG=`cat ${SELF_PATH}/conf/compile/config-pureftpd`
+    Color_Msg cyan 'Installing ...'
+    cd $SRC_DIR
+    echo  $COMPO_CONFIG || Install_Failed "$SRC"
+    eval $COMPO_CONFIG || Install_Failed "$SRC"
+    Color_Msg green "Making $SRC ..."
+    make || Install_Failed "$SRC"
+    Color_Msg green "Installing $SRC ..."
+    echo $SRC_DIR
+    make install || Install_Failed "$SRC"
+    mkdir -p /usr/local/pure-ftpd/etc
+    cp -f $SELF_PATH/conf/pure-ftpd/pure-ftpd.conf /usr/local/pure-ftpd/etc/
+    cp -f $SELF_PATH/conf/pure-ftpd/pure-config.pl /usr/local/pure-ftpd/sbin/
+fi

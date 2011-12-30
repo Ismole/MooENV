@@ -1,0 +1,210 @@
+#!/bin/bash
+
+read -p "Do You want to install phpMyAdmin? (Y/N)" PMA
+while [ $PMA != 'y' ] && [ $PMA != 'Y' ] && [ $PMA != 'n' ] && [ $PMA != 'N' ]; do
+    Color_Msg red "\n\n\nInvaild answer, select angin. (Y/N)"
+    read -p "Do You want to install phpMyAdmin? (Y/N)" PMA
+done
+#开始安装    
+if [ $PMA = 'y' ] || [ $PMA = 'Y' ]; then
+    #设置变量
+    NGX_PATH="/usr/local/nginx/conf"
+    PMA_CONFILE="pma"
+    TARGET='pma'
+ 
+#******************step 1  download file and unpack**************************#
+    Color_Msg cyan 'Install phpMyAdmin ...'
+    cd ${STORE_DIR}
+    unset SRC SRC_DIR FILE_EXT SUM COMPO_CONFIG CONTROL_FLAG FILE_PATH_CHECK
+    parser_file ${PHPMYADMIN_SRC}
+    rm -rf  "${SRC_DIR}"
+    get_file
+    unpack || Install_Failed "$SRC"
+    Color_Msg cyan 'Installing ...'
+    mkdir -p /data/www/logs/pma/
+
+    # config pma files save path
+    echo 
+    Color_Msg green "The phpMyAdmin default root path is /data/www/wwwroot/$TARGET" 
+    Color_Msg green "The phpMyAdmin default directory name $TARGET" 
+    until [ ! -d "/data/www/wwwroot/$TARGET" ] || [ "$FILE_PATH_CHECK" = "cover"  ] 
+    do
+        CONTROL_FLAG="b0xvYO3pptmmoam"
+        while :
+        do
+            case $CONTROL_FLAG in
+                "R"|"r")
+                      Color_Msg cyan "input the phpMyAdmin directory name:" NL
+                      read TARGET
+                      FILE_PATH_CHECK="rename"
+                      break
+                   ;; 
+                "C"|"c")
+                      FILE_PATH_CHECK="cover"
+                      mv /data/www/wwwroot/$TARGET /data/www/wwwroot/$TARGET.bak-$RUN_TIME
+                      Color_Msg green "the old file save as /data/www/wwwroot/$TARGET.bak-$RUN_TIME" 
+                      break 2
+                   ;; 
+                "b0xvYO3pptmmoam")
+                       Color_Msg red "\n\nThe file already exists,please selection operation " NL
+                       Color_Msg violet "1、[R]ename\t2、[C]over : " NL
+                       read  CONTROL_FLAG
+                       continue
+                    ;; 
+                *)
+                   Color_Msg red "\nInvaild answer, select angin. "
+                   Color_Msg cyan "selection operation:" NL
+                   Color_Msg violet "1、[R]ename\t2、[C]over : " NL
+                   read  CONTROL_FLAG
+                   continue
+                   ;;
+            esac  # end case1
+        done #end while
+        unset CONTROL_FLAG
+    done # end until
+    #复制配置文件到nginx的vhosts目录
+    [ -d "/data/www/wwwroot/" ] || mkdir -p /data/www/wwwroot/
+    mv ${SRC_DIR} /data/www/wwwroot/$TARGET
+    chown -R www.www /data/www/wwwroot/$TARGET
+    [ -z "$FILE_PATH_CHECK" ] || Color_Msg green "The phpMyAdmin save path ：/data/www/wwwroot/$TARGET"
+   
+    # end download and install
+
+    #编辑pma配置文件
+    blowfish_secret=$(awk -v COUNT=24  'BEGIN{STR_LEN = split("0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z",STR, ",");srand("'$RANDOM'");for (i=1; i<COUNT; i++) {k=int( rand()*STR_LEN)+1;printf "%s",STR[k] ;}printf "\n"}')
+    cp -f ${SELF_PATH}/conf/pma/config.inc.php /data/www/wwwroot/pma
+    sed -i "s/4ee5960137b614.13258812/$blowfish_secret/" /data/www/wwwroot/pma/config.inc.php
+    sed -i "/AllowArbitraryServer/s/true/false/" /data/www/wwwroot/pma/config.inc.php
+#******************end step 1************************************************#
+
+#******************step 2 config nginx vhosts configuration file*************#
+
+    # config nginx vhost configuration file save path
+    echo 
+    Color_Msg green "The nginx vhost configuration file default path :$NGX_PATH/vhosts/$PMA_CONFILE"
+    until [ ! -f "$NGX_PATH/vhosts/$PMA_CONFILE" ] || [ "$CON_FILE_CHECK" = "cover"  ] 
+    do
+        CONTROL_FLAG="b0xvYO3pptmmoam"
+        while :
+        do
+            case $CONTROL_FLAG in
+                "R"|"r")
+                      Color_Msg cyan  "please input you file name:" NL
+                      read PMA_CONFILE
+                      CON_FILE_CHECK="rename"
+                      break
+                   ;; 
+                "C"|"c")
+                      CON_FILE_CHECK="cover"
+                      mv $NGX_PATH/vhosts/$PMA_CONFILE $NGX_PATH/vhosts/${PMA_CONFILE}.bak-$RUN_TIME
+                      Color_Msg green  "file covered,the old file save as :$NGX_PATH/vhosts/${PMA_CONFILE}.bak-$RUN_TIME"
+                      break 2
+                   ;; 
+                "b0xvYO3pptmmoam")
+                       Color_Msg red "\n\nfile exists,please selection operation:" NL
+                       Color_Msg violet "1、[R]ename\t2、[C]over : " NL
+                       read  CONTROL_FLAG
+                       continue
+                    ;; 
+                *)
+                   Color_Msg red "\nInvaild answer, select angin. "
+                   Color_Msg cyan "please selection operation:" NL
+                   Color_Msg violet "1、[R]ename\t2、[C]over : " NL
+                   read  CONTROL_FLAG
+                   continue
+                   ;;
+            esac  # end case1
+        done #end while
+        unset CONTROL_FLAG
+    done # end until
+    #复制配置文件到nginx的vhosts目录
+    cp -f ${SELF_PATH}/conf/pma/pma $NGX_PATH/vhosts/$PMA_CONFILE
+    [ -z "$CONTROL_FLAG" ] || Color_Msg green "The nginx vhost configuration file path：$NGX_PATH/vhosts/$PMA_CONFILE"
+    #############end pma nginx配置文件
+
+    until [ "$FLAG" = "1" ]  # config nginx vhost server name 
+    do
+        SRE_NAME="pma" 
+        echo
+        Color_Msg cyan "Input your phpMyAdmin server_name?" NL
+        Color_Msg violet "(default : pma)" NL
+        read SRE_NAME
+        if [ -z "$SRE_NAME" ] ;then
+            SRE_NAME="pma" 
+        fi
+        # 检查域名是否存在
+        for i in `egrep "include" $NGX_PATH/nginx.conf|awk 'gsub(/;/,"") {print $2}'`
+        do
+            NGX_FILE=$NGX_PATH/$i
+            if [ "$i" != "vhosts/$PMA_CONFILE" ];then 
+                IS_SRE_NAME_EXIST=$IS_SRE_NAME_EXIST`grep "server_name\ *$SRE_NAME\ *;" $NGX_FILE`
+                if [ -n "$IS_SRE_NAME_EXIST" ] && [ "$i" != "vhosts/$SRE_NAME" ] ;then 
+                    break 1
+                fi
+            fi
+        done #end for
+    
+        #如果域名存在则跳过，重新输入
+        if [ -n "$IS_SRE_NAME_EXIST" ] ;then 
+            Color_Msg red "\n\nthe server name $SRE_NAME already exists in $NGX_FILE,please change it\n"
+            unset IS_SRE_NAME_EXIST
+            continue
+        fi
+        Color_Msg cyan "Are You sure to use " NL
+        Color_Msg violet "$SRE_NAME "  NL
+        Color_Msg cyan "for you phpMyAdmin server_name? (Y/N)" NL
+        read  FLAG
+        while [ "$FLAG" != 'y' ] && [ "$FLAG" != 'Y' ] && [ "$FLAG" != 'n' ] && [ "$FLAG" != 'N' ]
+        do
+            Color_Msg red "\n\nInvaild answer, select angin. "
+            Color_Msg cyan "Are You sure to use "  NL
+            Color_Msg violet "$SRE_NAME " NL
+            Color_Msg cyan "for you phpMyAdmin server_name? (Y/N)"  NL
+            read  FLAG
+            if [ -z "$FLAG" ];then
+                FLAG=y
+            fi
+        done  #end while
+        if [ $FLAG = 'y' ] || [ $FLAG = 'Y' ]; then
+           sed -i "/server_name\ *pma/s/pma/$SRE_NAME/" $NGX_PATH/vhosts/$PMA_CONFILE
+           FLAG=1 
+        else
+           unset FLAG
+        fi
+    done # end until
+#******************end step 2************************************************#
+#******************step 3 modify nginx man configuration file****************#
+
+    #修改根目录
+    if [ "/data/www/wwwroot/$TARGET" != "/data/www/wwwroot/pma" ];then 
+        TARGET_SED=$(echo /data/www/wwwroot/$TARGET |sed 's/\//\\\//g')
+        sed -i "s/\/data\/www\/wwwroot\/pma/${TARGET_SED}/" $NGX_PATH/vhosts/$PMA_CONFILE 
+    fi
+
+    #修改域名
+    if [ "$SRE_NAME" != "pma" ];then 
+        SRE_NAME_SED=$(echo "/data/www/logs/$SRE_NAME" |sed 's/\//\\\//g')
+        mkdir -p /data/www/logs/$SRE_NAME
+        sed -i "s/\/data\/www\/logs\/pma/${SRE_NAME_SED}/" $NGX_PATH/vhosts/$PMA_CONFILE 
+    fi
+
+    #检查主配置文件
+    for i in `egrep "include\ *vhosts" $NGX_PATH/nginx.conf|awk 'gsub(/;/,"") {print $2}'`
+    do
+        if [ "$i" = "vhosts/$PMA_CONFILE" ] ;then
+            IS_INCLUDE="true"
+            break 1
+        fi
+    done #end for
+
+    if [ "$IS_INCLUDE" != "true" ];then
+        NGX_NO=$(grep -n "include\ *vhosts" $NGX_PATH/nginx.conf|awk -F ':' 'END{print $1}')
+        sed -i "$NGX_NO a \    include vhosts/$PMA_CONFILE;" $NGX_PATH/nginx.conf
+    fi
+
+#******************end step 3************************************************#
+fi #end  install pma
+
+
+
+

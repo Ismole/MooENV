@@ -1,0 +1,19 @@
+server {
+    listen      80;
+    server_name pma;
+    access_log  /data/www/logs/pma/access.log combined buffer=32k;
+    error_log   /data/www/logs/pma/error.log crit;
+
+    location / {
+         index           index.html index.htm index.php;
+         root            /data/www/wwwroot/pma;
+    }
+
+    location ~ \.php$ {
+         include fastcgi_params;
+         fastcgi_pass  unix:/tmp/php-fcgi.sock;
+         fastcgi_index index.php;
+         fastcgi_param SCRIPT_FILENAME /data/www/wwwroot/pma$fastcgi_script_name;
+    }
+
+}

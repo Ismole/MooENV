@@ -1,0 +1,13 @@
+./configure --prefix=/usr/local/pure-ftpd 
+  --without-inetd 
+  --with-altlog 
+  --with-puredb 
+  --with-throttling 
+  --with-ratios 
+  --with-quotas 
+  --with-ftpwho 
+  --with-peruserlimits 
+  --with-language=english 
+  --with-tls 
+  --with-certfile=/usr/local/pure-ftpd/etc/pure-ftpd.pem 
+  --with-rfc2640

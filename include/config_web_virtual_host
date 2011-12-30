@@ -1,0 +1,160 @@
+#!/bin/bash
+
+NGX_PATH="/usr/local/nginx/conf"
+unset SRE_NAME CON_NAME IS_EXECUTE CONTROL_FLAG
+
+Execute_Input_CHECK "Do You want to create a web server virtual host ? (Y/N)"
+if [ "$IS_EXECUTE" = "ture" ];then
+    until [ "$CONTROL_FLAG" = "ture" ]  # config nginx vhost server name 
+    do
+        echo
+        Color_Msg cyan "Input the server domain name :" NL
+        read SRE_NAME
+        while [ -z "$SRE_NAME" ] 
+        do 
+            Color_Msg red "NULL,please input:" NL
+            read SRE_NAME
+        done 
+        # 检查域名是否存在
+        unset IS_SRE_NAME_EXIST
+        for i in `egrep "include" $NGX_PATH/nginx.conf|awk 'gsub(/;/,"") {print $2}'`
+        do
+            NGX_FILE=$NGX_PATH/$i
+            [ -f "$NGX_FILE" ] && IS_SRE_NAME_EXIST=$(grep "server_name\ *$SRE_NAME\ *;" $NGX_FILE)
+            if [ -n "$IS_SRE_NAME_EXIST" ] ;then
+                break 1
+            fi
+        done #end for
+
+        #如果域名存在则跳过，重新输入
+        if [ -n "$IS_SRE_NAME_EXIST" ] ;then
+            Color_Msg red "\n\nthe server name $SRE_NAME already exists in $NGX_FILE,please change it\n"
+            unset IS_SRE_NAME_EXIST
+            continue
+        fi
+        Execute_Input_CHECK  "Are You sure to use $SRE_NAME for you the server domain name? (Y/N)" violet
+
+        if [ "$IS_EXECUTE" = 'ture' ] ; then
+           CONTROL_FLAG="ture"
+           CON_FILE=$SRE_NAME
+        else
+           unset CONTROL_FLAG
+        fi
+    done # end until
+
+    echo 
+    Color_Msg green "The nginx vhost configuration file default path :$NGX_PATH/vhosts/$CON_FILE"
+    until [ ! -f "$NGX_PATH/vhosts/$CON_FILE" ] || [ "$CON_FILE_CHECK" = "cover"  ] 
+    do
+        CONTROL_FLAG="b0xvYO3pptmmoam"
+        while :
+        do
+            case $CONTROL_FLAG in
+                "R"|"r")
+                      Color_Msg cyan  "please input you file name:" NL
+                      read CON_FILE
+                      CON_FILE_CHECK="rename"
+                      break
+                   ;; 
+                "C"|"c")
+                      CON_FILE_CHECK="cover"
+                      mv $NGX_PATH/vhosts/$CON_FILE $NGX_PATH/vhosts/${CON_FILE}.bak-$RUN_TIME
+                      Color_Msg green  "file covered,the old file save as :$NGX_PATH/vhosts/${CON_FILE}.bak-$RUN_TIME"
+                      break 2
+                   ;; 
+                "b0xvYO3pptmmoam")
+                       Color_Msg red "\n\nfile exists,please selection operation:" NL
+                       Color_Msg violet "1、[R]ename\t2、[C]over : " NL
+                       read  CONTROL_FLAG
+                       continue
+                    ;; 
+                *)
+                   Color_Msg red "\nInvaild answer, select angin. "
+                   Color_Msg cyan "please selection operation:" NL
+                   Color_Msg violet "1、[R]ename\t2、[C]over : " NL
+                   read  CONTROL_FLAG
+                   continue
+                   ;;
+            esac  # end case1
+        done #end while
+        unset CONTROL_FLAG
+    done # end until
+
+    
+    SER_ROOT_DIR=$SRE_NAME
+    Color_Msg green "The default server root dirname is /data/www/wwwroot/$SER_ROOT_DIR" 
+    until [ ! -d "/data/www/wwwroot/$SER_ROOT_DIR" ] || [ "$FILE_PATH_CHECK" = "cover"  ] 
+    do
+        CONTROL_FLAG="b0xvYO3pptmmoam"
+        while :
+        do
+            case $CONTROL_FLAG in
+                "R"|"r")
+                      Color_Msg cyan "Input the server root dirname:" NL
+                      read SER_ROOT_DIR
+                      FILE_PATH_CHECK="rename"
+                      break
+                   ;; 
+                "C"|"c")
+                      FILE_PATH_CHECK="cover"
+                      mv /data/www/wwwroot/$SER_ROOT_DIR /data/www/wwwroot/$SER_ROOT_DIR.bak-$RUN_TIME
+                      Color_Msg green "the old file save as /data/www/wwwroot/$SER_ROOT_DIR.bak-$RUN_TIME" 
+                      break 2
+                   ;; 
+                "b0xvYO3pptmmoam")
+                       Color_Msg red "\n\nThe file already exists,please selection operation " NL
+                       Color_Msg violet "1、[R]ename\t2、[C]over : " NL
+                       read  CONTROL_FLAG
+                       continue
+                    ;; 
+                *)
+                   Color_Msg red "\nInvaild answer, select angin. "
+                   Color_Msg cyan "selection operation:" NL
+                   Color_Msg violet "1、[R]ename\t2、[C]over : " NL
+                   read  CONTROL_FLAG
+                   continue
+                   ;;
+            esac  # end case1
+        done #end while
+        unset CONTROL_FLAG
+    done # end until
+
+
+    #复制配置文件到nginx的vhosts目录
+    cp -f ${SELF_PATH}/conf/pma/pma $NGX_PATH/vhosts/$CON_FILE
+    [ -z "$CONTROL_FLAG" ] || Color_Msg green "The nginx vhost configuration file path：$NGX_PATH/vhosts/$CON_FILE"
+    #修改根目录
+    if [ "/data/www/wwwroot/$SER_ROOT_DIR" != "/data/www/wwwroot/pma" ];then 
+        SER_ROOT_DIR_SED=$(echo /data/www/wwwroot/$SER_ROOT_DIR |sed 's/\//\\\//g')
+        sed -i "s/\/data\/www\/wwwroot\/pma/${SER_ROOT_DIR_SED}/" $NGX_PATH/vhosts/$CON_FILE 
+    fi
+
+    #修改域名
+    if [ -n "$SER_ROOT_DIR" ];then 
+        SER_ROOT_DIR_SED=$(echo "/data/www/logs/$SER_ROOT_DIR" |sed 's/\//\\\//g')
+        mkdir -p "/data/www/logs/$SER_ROOT_DIR"
+        sed -i "s/\/data\/www\/logs\/pma/${SER_ROOT_DIR_SED}/" $NGX_PATH/vhosts/$CON_FILE 
+    fi
+
+    #检查主配置文件
+    for i in `egrep "include\ *vhosts" $NGX_PATH/nginx.conf|awk 'gsub(/;/,"") {print $2}'`
+    do
+        if [ "$i" = "vhosts/$CON_FILE" ] ;then
+            IS_INCLUDE="true"
+            break 1
+        fi
+    done #end for
+
+    if [ "$IS_INCLUDE" != "true" ];then
+        NGX_NO=$(grep -n "include\ *vhosts" $NGX_PATH/nginx.conf|awk -F ':' 'END{print $1}')
+        sed -i "$NGX_NO a \    include vhosts/$CON_FILE;" $NGX_PATH/nginx.conf
+    fi
+
+    sed -i "/server_name\ *pma/s/pma/$SRE_NAME/" $NGX_PATH/vhosts/$CON_FILE
+    sed -i "/\/data\/www\/logs/s/pma/$SRE_NAME/" $NGX_PATH/vhosts/$CON_FILE
+
+    mkdir -p /data/www/wwwroot/$SER_ROOT_DIR
+    chown -R www.www /data/www/wwwroot/$SER_ROOT_DIR
+    [ -z "$FILE_PATH_CHECK" ] || Color_Msg green "The phpMyAdmin save path ：/data/www/wwwroot/$SER_ROOT_DIR"
+
+fi
